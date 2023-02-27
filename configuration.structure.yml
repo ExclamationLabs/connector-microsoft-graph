@@ -1,0 +1,19 @@
+---
+name: 'MicrosoftGraph'
+configurationClass:
+  name: 'MicrosoftGraphConfiguration'
+  package: 'com.exclamationlabs.connid.base.microsoft.graph.configuration'
+results: true
+security:
+  authenticator:
+    oauth2ClientCredentials: true
+custom:
+  items:
+    required:
+      tenantId:
+        type: string
+        display: 'Azure Tenant Id'
+        help: 'Identifier for Azure AD Tenant'
+
+
+
