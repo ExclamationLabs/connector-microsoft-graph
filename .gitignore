@@ -1,0 +1,9 @@
+/.idea
+/.gradle
+/custom
+/test-config.json
+/connector-zoom.iml
+/target
+.DS_Store
+/out
+/generatedConfig
