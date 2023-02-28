@@ -54,7 +54,12 @@ public class MicrosoftGraphUsersAdapter
   public Set<ConnectorAttribute> getConnectorAttributes() {
     Set<ConnectorAttribute> result = new HashSet<>();
     result.add(
-        new ConnectorAttribute(ACCOUNT_ENABLED.name(), BOOLEAN, NOT_UPDATEABLE, NOT_READABLE));
+        new ConnectorAttribute(
+            ACCOUNT_ENABLED.name(),
+            BOOLEAN,
+            NOT_UPDATEABLE,
+            NOT_READABLE,
+            NOT_RETURNED_BY_DEFAULT));
     result.add(new ConnectorAttribute(AGE_GROUP.name(), STRING));
     result.add(new ConnectorAttribute(BUSINESS_PHONES.name(), STRING, MULTIVALUED));
     result.add(new ConnectorAttribute(CITY.name(), STRING));
@@ -117,7 +122,9 @@ public class MicrosoftGraphUsersAdapter
     result.add(new ConnectorAttribute(RESPONSIBILITIES.name(), STRING, MULTIVALUED));
     result.add(new ConnectorAttribute(SKILLS.name(), STRING, MULTIVALUED));
 
-    result.add(new ConnectorAttribute(PASSWORD.name(), GUARDED_STRING, NOT_READABLE));
+    result.add(
+        new ConnectorAttribute(
+            PASSWORD.name(), GUARDED_STRING, NOT_READABLE, NOT_RETURNED_BY_DEFAULT));
     result.add(new ConnectorAttribute(FORCE_CHANGE_PASSWORD_NEXT_SIGN_IN.name(), BOOLEAN));
     result.add(new ConnectorAttribute(FORCE_CHANGE_PASSWORD_NEXT_SIGN_IN_WITH_MFA.name(), BOOLEAN));
 
