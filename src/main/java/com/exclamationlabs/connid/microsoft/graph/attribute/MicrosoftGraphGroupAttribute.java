@@ -17,6 +17,7 @@
 package com.exclamationlabs.connid.microsoft.graph.attribute;
 
 public enum MicrosoftGraphGroupAttribute {
+  GROUP_ID,
   CLASSIFICATION,
   CREATED_DATETIME,
   DESCRIPTION,

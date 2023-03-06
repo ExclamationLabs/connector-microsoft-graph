@@ -32,10 +32,7 @@ import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.BooleanUtils;
 import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.framework.common.objects.Attribute;
-import org.identityconnectors.framework.common.objects.AttributeBuilder;
-import org.identityconnectors.framework.common.objects.ObjectClass;
-import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.common.objects.*;
 
 public class MicrosoftGraphUsersAdapter
     extends BaseAdapter<MicrosoftGraphUser, MicrosoftGraphConfiguration> {
@@ -60,6 +57,7 @@ public class MicrosoftGraphUsersAdapter
             NOT_UPDATEABLE,
             NOT_READABLE,
             NOT_RETURNED_BY_DEFAULT));
+    result.add(new ConnectorAttribute(Uid.NAME, USER_ID.name(), STRING));
     result.add(new ConnectorAttribute(AGE_GROUP.name(), STRING));
     result.add(new ConnectorAttribute(BUSINESS_PHONES.name(), STRING, MULTIVALUED));
     result.add(new ConnectorAttribute(CITY.name(), STRING));
@@ -68,8 +66,7 @@ public class MicrosoftGraphUsersAdapter
     result.add(
         new ConnectorAttribute(CREATED_DATETIME.name(), STRING, NOT_CREATABLE, NOT_UPDATEABLE));
     result.add(new ConnectorAttribute(CREATION_TYPE.name(), STRING));
-    result.add(new ConnectorAttribute(DEPARTMENT.name(), STRING));
-    result.add(new ConnectorAttribute(DISPLAY_NAME.name(), STRING));
+    result.add(new ConnectorAttribute(Name.NAME, DISPLAY_NAME.name(), STRING));
     result.add(new ConnectorAttribute(EMPLOYEE_HIRE_DATE.name(), STRING));
     result.add(new ConnectorAttribute(EMPLOYEE_ID.name(), STRING));
     result.add(new ConnectorAttribute(COST_CENTER.name(), STRING));
@@ -79,7 +76,6 @@ public class MicrosoftGraphUsersAdapter
     result.add(new ConnectorAttribute(EXTERNAL_USER_STATE_CHANGE_DATETIME.name(), STRING));
     result.add(new ConnectorAttribute(GIVEN_NAME.name(), STRING));
     result.add(new ConnectorAttribute(IM_ADDRESSES.name(), STRING, MULTIVALUED));
-    result.add(new ConnectorAttribute(JOB_TITLE.name(), STRING));
     result.add(
         new ConnectorAttribute(
             LAST_PASSWORD_CHANGE_DATETIME.name(), STRING, NOT_CREATABLE, NOT_UPDATEABLE));
@@ -146,7 +142,7 @@ public class MicrosoftGraphUsersAdapter
     user.getGraphUser().passwordProfile = new PasswordProfile();
     user.getGraphUser().id = AdapterValueTypeConverter.getIdentityIdAttributeValue(attributes);
     user.getGraphUser().displayName =
-        AdapterValueTypeConverter.getSingleAttributeValue(String.class, attributes, DISPLAY_NAME);
+        AdapterValueTypeConverter.getIdentityNameAttributeValue(attributes);
     user.getGraphUser().givenName =
         AdapterValueTypeConverter.getSingleAttributeValue(String.class, attributes, GIVEN_NAME);
     user.getGraphUser().surname =
@@ -197,8 +193,6 @@ public class MicrosoftGraphUsersAdapter
     user.getGraphUser().creationType =
         AdapterValueTypeConverter.getSingleAttributeValue(String.class, attributes, CREATION_TYPE);
 
-    user.getGraphUser().department =
-        AdapterValueTypeConverter.getSingleAttributeValue(String.class, attributes, DEPARTMENT);
     user.getGraphUser().employeeHireDate =
         parseDateTime(
             AdapterValueTypeConverter.getSingleAttributeValue(
@@ -220,8 +214,6 @@ public class MicrosoftGraphUsersAdapter
                 String.class, attributes, EXTERNAL_USER_STATE_CHANGE_DATETIME));
     user.getGraphUser().imAddresses =
         AdapterValueTypeConverter.getMultipleAttributeValue(List.class, attributes, IM_ADDRESSES);
-    user.getGraphUser().jobTitle =
-        AdapterValueTypeConverter.getSingleAttributeValue(String.class, attributes, JOB_TITLE);
     user.getGraphUser().lastPasswordChangeDateTime =
         parseDateTime(
             AdapterValueTypeConverter.getSingleAttributeValue(
@@ -339,6 +331,8 @@ public class MicrosoftGraphUsersAdapter
   protected Set<Attribute> constructAttributes(MicrosoftGraphUser user) {
     Set<Attribute> attributes = new HashSet<>();
     attributes.add(AttributeBuilder.build(Uid.NAME, user.getGraphUser().id));
+    attributes.add(AttributeBuilder.build(USER_ID.name(), user.getGraphUser().id));
+    attributes.add(AttributeBuilder.build(Name.NAME, user.getGraphUser().displayName));
     attributes.add(AttributeBuilder.build(DISPLAY_NAME.name(), user.getGraphUser().displayName));
     attributes.add(AttributeBuilder.build(GIVEN_NAME.name(), user.getGraphUser().givenName));
     attributes.add(AttributeBuilder.build(SURNAME.name(), user.getGraphUser().surname));
@@ -379,7 +373,6 @@ public class MicrosoftGraphUsersAdapter
               CREATED_DATETIME.name(), user.getGraphUser().createdDateTime.toString()));
     }
     attributes.add(AttributeBuilder.build(CREATION_TYPE.name(), user.getGraphUser().creationType));
-    attributes.add(AttributeBuilder.build(DEPARTMENT.name(), user.getGraphUser().department));
     if (user.getGraphUser().employeeHireDate != null) {
       attributes.add(
           AttributeBuilder.build(
@@ -404,7 +397,6 @@ public class MicrosoftGraphUsersAdapter
               user.getGraphUser().externalUserStateChangeDateTime.toString()));
     }
     attributes.add(AttributeBuilder.build(IM_ADDRESSES.name(), user.getGraphUser().imAddresses));
-    attributes.add(AttributeBuilder.build(JOB_TITLE.name(), user.getGraphUser().jobTitle));
 
     if (user.getGraphUser().lastPasswordChangeDateTime != null) {
       attributes.add(

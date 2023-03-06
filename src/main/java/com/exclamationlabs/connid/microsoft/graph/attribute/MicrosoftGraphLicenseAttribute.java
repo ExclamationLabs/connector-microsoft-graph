@@ -17,6 +17,7 @@
 package com.exclamationlabs.connid.microsoft.graph.attribute;
 
 public enum MicrosoftGraphLicenseAttribute {
+  LICENSE_ID,
   APPLIES_TO, // User or Company
   CAPABILITY_STATUS, // One of (Enabled, Warning, Suspended, Deleted, LockedOut)
   CONSUMED_UNITS,
