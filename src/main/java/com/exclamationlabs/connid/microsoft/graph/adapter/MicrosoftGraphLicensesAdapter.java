@@ -24,10 +24,7 @@ import com.exclamationlabs.connid.microsoft.graph.model.MicrosoftGraphLicense;
 import com.microsoft.graph.models.SubscribedSku;
 import java.util.HashSet;
 import java.util.Set;
-import org.identityconnectors.framework.common.objects.Attribute;
-import org.identityconnectors.framework.common.objects.AttributeBuilder;
-import org.identityconnectors.framework.common.objects.ObjectClass;
-import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.common.objects.*;
 
 public class MicrosoftGraphLicensesAdapter
     extends BaseAdapter<MicrosoftGraphLicense, MicrosoftGraphConfiguration> {
@@ -46,12 +43,16 @@ public class MicrosoftGraphLicensesAdapter
   @Override
   public Set<ConnectorAttribute> getConnectorAttributes() {
     Set<ConnectorAttribute> result = new HashSet<>();
+    result.add(
+        new ConnectorAttribute(Uid.NAME, LICENSE_ID.name(), STRING, NOT_UPDATEABLE, NOT_CREATABLE));
+
     result.add(new ConnectorAttribute(APPLIES_TO.name(), STRING, NOT_UPDATEABLE, NOT_CREATABLE));
     result.add(
         new ConnectorAttribute(CAPABILITY_STATUS.name(), STRING, NOT_UPDATEABLE, NOT_CREATABLE));
     result.add(
         new ConnectorAttribute(CONSUMED_UNITS.name(), INTEGER, NOT_UPDATEABLE, NOT_CREATABLE));
-    result.add(new ConnectorAttribute(SKU_ID.name(), STRING, NOT_UPDATEABLE, NOT_CREATABLE));
+    result.add(
+        new ConnectorAttribute(Name.NAME, SKU_ID.name(), STRING, NOT_UPDATEABLE, NOT_CREATABLE));
     result.add(
         new ConnectorAttribute(SKU_PART_NUMBER.name(), STRING, NOT_UPDATEABLE, NOT_CREATABLE));
 

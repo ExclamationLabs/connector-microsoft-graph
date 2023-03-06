@@ -30,10 +30,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.identityconnectors.framework.common.objects.Attribute;
-import org.identityconnectors.framework.common.objects.AttributeBuilder;
-import org.identityconnectors.framework.common.objects.ObjectClass;
-import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.common.objects.*;
 
 public class MicrosoftGraphGroupsAdapter
     extends BaseAdapter<MicrosoftGraphGroup, MicrosoftGraphConfiguration> {
@@ -52,10 +49,11 @@ public class MicrosoftGraphGroupsAdapter
   @Override
   public Set<ConnectorAttribute> getConnectorAttributes() {
     Set<ConnectorAttribute> result = new HashSet<>();
+    result.add(new ConnectorAttribute(Uid.NAME, GROUP_ID.name(), STRING));
     result.add(new ConnectorAttribute(CLASSIFICATION.name(), STRING));
     result.add(new ConnectorAttribute(CREATED_DATETIME.name(), STRING));
     result.add(new ConnectorAttribute(DESCRIPTION.name(), STRING));
-    result.add(new ConnectorAttribute(DISPLAY_NAME.name(), STRING));
+    result.add(new ConnectorAttribute(Name.NAME, DISPLAY_NAME.name(), STRING));
     result.add(
         new ConnectorAttribute(EXPIRATION_DATETIME.name(), STRING, NOT_UPDATEABLE, NOT_CREATABLE));
     result.add(new ConnectorAttribute(GROUP_TYPES.name(), STRING, MULTIVALUED));

@@ -17,6 +17,8 @@
 package com.exclamationlabs.connid.microsoft.graph.attribute;
 
 public enum MicrosoftGraphUserAttribute {
+  USER_ID,
+
   ACCOUNT_ENABLED, // boolean
   AGE_GROUP,
 
@@ -31,7 +33,6 @@ public enum MicrosoftGraphUserAttribute {
 
   CREATED_DATETIME, // convert to string
   CREATION_TYPE,
-  DEPARTMENT,
   DISPLAY_NAME,
   EMPLOYEE_HIRE_DATE,
   EMPLOYEE_ID,
@@ -44,7 +45,6 @@ public enum MicrosoftGraphUserAttribute {
   EXTERNAL_USER_STATE_CHANGE_DATETIME,
   GIVEN_NAME,
   IM_ADDRESSES,
-  JOB_TITLE,
   LAST_PASSWORD_CHANGE_DATETIME,
   EMAIL, // Mail in User
   EMAIL_NICKNAME,
