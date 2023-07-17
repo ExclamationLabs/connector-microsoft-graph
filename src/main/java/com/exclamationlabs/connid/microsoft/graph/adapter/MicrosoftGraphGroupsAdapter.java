@@ -62,7 +62,7 @@ public class MicrosoftGraphGroupsAdapter
         new ConnectorAttribute(
             LICENSE_PROCESSING_STATE.name(), STRING, NOT_UPDATEABLE, NOT_CREATABLE));
     result.add(new ConnectorAttribute(EMAIL.name(), STRING, NOT_UPDATEABLE, NOT_CREATABLE));
-    result.add(new ConnectorAttribute(EMAIL_ENABLED.name(), STRING));
+    result.add(new ConnectorAttribute(EMAIL_ENABLED.name(), BOOLEAN));
     result.add(new ConnectorAttribute(EMAIL_NICKNAME.name(), STRING));
     result.add(new ConnectorAttribute(MEMBERSHIP_RULE.name(), STRING));
     result.add(new ConnectorAttribute(MEMBERSHIP_RULE_PROCESSING_STATE.name(), STRING));
