@@ -115,7 +115,7 @@ public class MicrosoftGraphGroupsAdapter
     group.getGraphGroup().description =
         AdapterValueTypeConverter.getSingleAttributeValue(String.class, attributes, DESCRIPTION);
     group.getGraphGroup().displayName =
-        AdapterValueTypeConverter.getSingleAttributeValue(String.class, attributes, DISPLAY_NAME);
+        AdapterValueTypeConverter.getIdentityNameAttributeValue(attributes);
     group.getGraphGroup().groupTypes =
         AdapterValueTypeConverter.getMultipleAttributeValue(List.class, attributes, GROUP_TYPES);
     group.getGraphGroup().isAssignableToRole =
@@ -168,7 +168,6 @@ public class MicrosoftGraphGroupsAdapter
   @Override
   protected Set<Attribute> constructAttributes(MicrosoftGraphGroup group) {
     Set<Attribute> attributes = new HashSet<>();
-    attributes.add(AttributeBuilder.build(Uid.NAME, group.getGraphGroup().id));
     attributes.add(
         AttributeBuilder.build(CLASSIFICATION.name(), group.getGraphGroup().classification));
     if (group.getGraphGroup().createdDateTime != null) {
@@ -176,7 +175,6 @@ public class MicrosoftGraphGroupsAdapter
           AttributeBuilder.build(
               CREATED_DATETIME.name(), group.getGraphGroup().createdDateTime.toString()));
     }
-    attributes.add(AttributeBuilder.build(DISPLAY_NAME.name(), group.getGraphGroup().displayName));
     if (group.getGraphGroup().expirationDateTime != null) {
       attributes.add(
           AttributeBuilder.build(

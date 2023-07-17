@@ -71,13 +71,8 @@ public class MicrosoftGraphLicensesAdapter
   @Override
   protected Set<Attribute> constructAttributes(MicrosoftGraphLicense license) {
     Set<Attribute> attributes = new HashSet<>();
-    attributes.add(AttributeBuilder.build(Uid.NAME, license.getGraphLicense().id));
     attributes.add(
         AttributeBuilder.build(APPLIES_TO.name(), license.getGraphLicense().capabilityStatus));
-    if (license.getGraphLicense().skuId != null) {
-      attributes.add(
-          AttributeBuilder.build(SKU_ID.name(), license.getGraphLicense().skuId.toString()));
-    }
     attributes.add(
         AttributeBuilder.build(CONSUMED_UNITS.name(), license.getGraphLicense().consumedUnits));
     attributes.add(

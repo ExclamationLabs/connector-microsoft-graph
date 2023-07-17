@@ -330,10 +330,6 @@ public class MicrosoftGraphUsersAdapter
   @Override
   protected Set<Attribute> constructAttributes(MicrosoftGraphUser user) {
     Set<Attribute> attributes = new HashSet<>();
-    attributes.add(AttributeBuilder.build(Uid.NAME, user.getGraphUser().id));
-    attributes.add(AttributeBuilder.build(USER_ID.name(), user.getGraphUser().id));
-    attributes.add(AttributeBuilder.build(Name.NAME, user.getGraphUser().displayName));
-    attributes.add(AttributeBuilder.build(DISPLAY_NAME.name(), user.getGraphUser().displayName));
     attributes.add(AttributeBuilder.build(GIVEN_NAME.name(), user.getGraphUser().givenName));
     attributes.add(AttributeBuilder.build(SURNAME.name(), user.getGraphUser().surname));
     attributes.add(AttributeBuilder.build(EMAIL.name(), user.getGraphUser().mail));
