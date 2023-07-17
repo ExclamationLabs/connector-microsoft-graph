@@ -96,8 +96,7 @@ public class MicrosoftGraphConnectorApiIntegrationTest
 
     attributes.add(new AttributeBuilder().setName(GIVEN_NAME.name()).addValue("Bud").build());
     attributes.add(new AttributeBuilder().setName(SURNAME.name()).addValue("Coke").build());
-    attributes.add(
-        new AttributeBuilder().setName(DISPLAY_NAME.name()).addValue("Bud Coke").build());
+    attributes.add(new AttributeBuilder().setName(Name.NAME).addValue("Bud Coke").build());
     attributes.add(new AttributeBuilder().setName(EMAIL.name()).addValue(TEST_EMAIL).build());
     attributes.add(
         new AttributeBuilder().setName(EMAIL_NICKNAME.name()).addValue("BudCoke3").build());
@@ -140,8 +139,7 @@ public class MicrosoftGraphConnectorApiIntegrationTest
 
     attributes.add(new AttributeBuilder().setName(GIVEN_NAME.name()).addValue("Sid").build());
     attributes.add(new AttributeBuilder().setName(SURNAME.name()).addValue("Coke").build());
-    attributes.add(
-        new AttributeBuilder().setName(DISPLAY_NAME.name()).addValue("Sid Coke").build());
+    attributes.add(new AttributeBuilder().setName(Name.NAME).addValue("Sid Coke").build());
     attributes.add(new AttributeBuilder().setName(EMAIL.name()).addValue(TEST_EMAIL).build());
     attributes.add(
         new AttributeBuilder().setName(EMAIL_NICKNAME.name()).addValue("SidCoke3").build());
@@ -192,8 +190,7 @@ public class MicrosoftGraphConnectorApiIntegrationTest
 
     attributes.add(new AttributeBuilder().setName(GIVEN_NAME.name()).addValue("Kevin").build());
     attributes.add(new AttributeBuilder().setName(SURNAME.name()).addValue("Omaha").build());
-    attributes.add(
-        new AttributeBuilder().setName(DISPLAY_NAME.name()).addValue("Kevin Omaha").build());
+    attributes.add(new AttributeBuilder().setName(Name.NAME).addValue("Kevin Omaha").build());
     attributes.add(new AttributeBuilder().setName(EMAIL.name()).addValue(TEST_EMAIL).build());
     attributes.add(
         new AttributeBuilder().setName(EMAIL_NICKNAME.name()).addValue("JOmaha").build());
@@ -262,8 +259,7 @@ public class MicrosoftGraphConnectorApiIntegrationTest
     Set<Attribute> attributes = new HashSet<>();
     attributes.add(new AttributeBuilder().setName(GIVEN_NAME.name()).addValue("Kevin").build());
     attributes.add(new AttributeBuilder().setName(SURNAME.name()).addValue("Durant").build());
-    attributes.add(
-        new AttributeBuilder().setName(DISPLAY_NAME.name()).addValue("Kevin Durant").build());
+    attributes.add(new AttributeBuilder().setName(Name.NAME).addValue("Kevin Durant").build());
 
     assertThrows(
         ConnectorException.class,
@@ -474,11 +470,7 @@ public class MicrosoftGraphConnectorApiIntegrationTest
   @Order(210)
   public void test210GroupCreate() {
     Set<Attribute> attributes = new HashSet<>();
-    attributes.add(
-        new AttributeBuilder()
-            .setName(MicrosoftGraphGroupAttribute.DISPLAY_NAME.name())
-            .addValue("Flinstones2")
-            .build());
+    attributes.add(new AttributeBuilder().setName(Name.NAME).addValue("Flinstones2").build());
     attributes.add(
         new AttributeBuilder()
             .setName(MicrosoftGraphGroupAttribute.EMAIL_ENABLED.name())
