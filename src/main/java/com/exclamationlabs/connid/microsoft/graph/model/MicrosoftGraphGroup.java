@@ -31,7 +31,7 @@ public class MicrosoftGraphGroup implements IdentityModel {
 
   @Override
   public String getIdentityNameValue() {
-    return getGraphGroup().displayName;
+    return String.format("%s (%s)", getGraphGroup().displayName, getGraphGroup().id);
   }
 
   public Group getGraphGroup() {
