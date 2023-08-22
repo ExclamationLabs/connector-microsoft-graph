@@ -1,6 +1,15 @@
 # connector-microsoft-graph
 
 ## Change Log
++ **1.1.0**
+  + ***Improvements:***
+    + Native password support
+    + Native activation support
+    + Configuration to force password reset on Create
+    + Only directly assigned licenses are returned
+  + ***Bug Fixes:***
+    + Activation no longer changed on modify
+    + Add mailNickname Get value
 + **1.0.6** - Assure uniqueness of group name FIN-10270 (2023/07/17)
 + **1.0.5** - Fix email_enabled Boolean Type FIN-10270 (2023/07/17)
 + **1.0.4** - Remove duplicate UID and Name setting (already handled by base) FIN-10270 (2023/07/17)
