@@ -14,6 +14,12 @@ custom:
         type: string
         display: 'Azure Tenant Id'
         help: 'Identifier for Azure AD Tenant'
+    optional:
+      forceChangePasswordOnCreate:
+        type: boolean
+        display: 'Force Password Reset First Sign In'
+        help: 'Require that new users change passwords on first sign in.'
+        default: 'false'
 
 
 

@@ -75,7 +75,6 @@ public class MicrosoftGraphUsersInvocator
     detailFields.addAll(summaryFields);
     detailFields.addAll(
         Arrays.asList(
-            "assignedLicenses",
             "forceChangePasswordNextSignIn",
             "forceChangePasswordNextSignInWithMfa",
             "ageGroup",
@@ -88,6 +87,7 @@ public class MicrosoftGraphUsersInvocator
             "externalUserStateChangeDateTime",
             "imAddresses",
             "lastPasswordChangeDateTime",
+            "licenseAssignmentStates",
             "onPremisesDistinguishedName",
             "onPremisesDomainName",
             "onPremisesImmutableId",
@@ -106,7 +106,6 @@ public class MicrosoftGraphUsersInvocator
             "streetAddress",
             "usageLocation",
             "hireDate",
-            "assignedLicenses",
             "memberOf",
             "responsibilities",
             "skills"));
@@ -258,11 +257,11 @@ public class MicrosoftGraphUsersInvocator
       List<UUID> removeList = new ArrayList<>();
       for (String current : licenseIdsToAdd) {
         AssignedLicense licenseData = new AssignedLicense();
-        licenseData.skuId = UUID.fromString(current);
+        licenseData.skuId = UUID.fromString(removeTenantID(current));
         addList.add(licenseData);
       }
       for (String current : licenseIdsToRemove) {
-        removeList.add(UUID.fromString(current));
+        removeList.add(UUID.fromString(removeTenantID(current)));
       }
 
       driver
@@ -284,6 +283,10 @@ public class MicrosoftGraphUsersInvocator
           gse);
       throw gse;
     }
+  }
+
+  private String removeTenantID(String license){
+    return license.replaceAll(".*_", "");
   }
 
   private void addGroupToUser(String groupId, String userId, MicrosoftGraphDriver driver)

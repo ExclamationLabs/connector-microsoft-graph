@@ -19,6 +19,9 @@ package com.exclamationlabs.connid.microsoft.graph.attribute;
 public enum MicrosoftGraphUserAttribute {
   USER_ID,
 
+  __ENABLE__,
+  __PASSWORD__,
+
   ACCOUNT_ENABLED, // boolean
   AGE_GROUP,
 

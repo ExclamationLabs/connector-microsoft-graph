@@ -22,12 +22,12 @@ import com.exclamationlabs.connid.base.connector.test.ApiIntegrationTest;
 import com.exclamationlabs.connid.base.microsoft.graph.configuration.MicrosoftGraphConfiguration;
 import com.exclamationlabs.connid.microsoft.graph.attribute.MicrosoftGraphGroupAttribute;
 import com.exclamationlabs.connid.microsoft.graph.attribute.MicrosoftGraphUserAttribute;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+
+import java.util.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.identityconnectors.common.security.GuardedString;
+import org.identityconnectors.framework.api.APIConfiguration;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.*;
@@ -77,6 +77,16 @@ public class MicrosoftGraphConnectorApiIntegrationTest
     ConfigurationReader.setupTestConfiguration(configuration);
   }
 
+  @Override
+  protected APIConfiguration apiConfig(MicrosoftGraphConfiguration configurationObject) {
+    APIConfiguration config = super.apiConfig(configurationObject);
+    config.getResultsHandlerConfiguration().setEnableFilteredResultsHandler(false);
+    config.getResultsHandlerConfiguration().setEnableNormalizingResultsHandler(false);
+    config.getResultsHandlerConfiguration().setEnableAttributesToGetSearchResultsHandler(false);
+    config.getResultsHandlerConfiguration().setFilteredResultsHandlerInValidationMode(false);
+    return config;
+  }
+
   @BeforeEach
   public void setup() {
     super.setup();
@@ -86,6 +96,14 @@ public class MicrosoftGraphConnectorApiIntegrationTest
   @Order(100)
   public void test100Test() {
     getConnectorFacade().test();
+  }
+
+  @Test
+  @Order(100)
+  public void test100Schema() {
+
+    Schema schema = getConnectorFacade().schema();
+    assertNotNull(schema);
   }
 
   @Test
@@ -283,7 +301,7 @@ public class MicrosoftGraphConnectorApiIntegrationTest
         getConnectorFacade()
             .updateDelta(
                 new ObjectClass("user"),
-                new Uid(generatedUserId),
+                new Uid(KNOWN_USER_ID),
                 attributes,
                 new OperationOptionsBuilder().build());
     assertNotNull(response);
@@ -415,7 +433,7 @@ public class MicrosoftGraphConnectorApiIntegrationTest
 
   @Test
   @Order(140)
-  public void test140UserGet() {
+  public void test140UserFilter() {
     Attribute idAttribute =
         new AttributeBuilder().setName(Uid.NAME).addValue(KNOWN_USER_ID).build();
 
@@ -430,6 +448,20 @@ public class MicrosoftGraphConnectorApiIntegrationTest
     assertTrue(
         StringUtils.isNotBlank(
             results.get(0).getAttributeByName(Uid.NAME).getValue().get(0).toString()));
+  }
+
+  @Test
+  @Order(140)
+  public void test140UserGet() {
+    results = new ArrayList<>();
+    ConnectorObject user = getConnectorFacade()
+            .getObject(
+                    new ObjectClass("user"),
+                    new Uid(KNOWN_USER_ID, new Name("fred")),
+                    new OperationOptionsBuilder().build());
+    assertTrue(
+            StringUtils.isNotBlank(
+                    user.getAttributeByName(Uid.NAME).getValue().get(0).toString()));
   }
 
   @Test
