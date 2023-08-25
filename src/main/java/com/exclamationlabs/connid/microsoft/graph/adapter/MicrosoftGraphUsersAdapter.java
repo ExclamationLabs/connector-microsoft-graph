@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.apache.commons.lang3.BooleanUtils;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.*;
 
@@ -51,9 +50,7 @@ public class MicrosoftGraphUsersAdapter
   public Set<ConnectorAttribute> getConnectorAttributes() {
     Set<ConnectorAttribute> result = new HashSet<>();
     result.add(
-        new ConnectorAttribute(OperationalAttributes.ENABLE_NAME,
-            ACCOUNT_ENABLED.name(),
-            BOOLEAN));
+        new ConnectorAttribute(OperationalAttributes.ENABLE_NAME, ACCOUNT_ENABLED.name(), BOOLEAN));
     result.add(new ConnectorAttribute(Uid.NAME, USER_ID.name(), STRING));
     result.add(new ConnectorAttribute(AGE_GROUP.name(), STRING));
     result.add(new ConnectorAttribute(BUSINESS_PHONES.name(), STRING, MULTIVALUED));
@@ -116,8 +113,12 @@ public class MicrosoftGraphUsersAdapter
     result.add(new ConnectorAttribute(SKILLS.name(), STRING, MULTIVALUED));
 
     result.add(
-        new ConnectorAttribute(OperationalAttributes.PASSWORD_NAME,
-            PASSWORD.name(), GUARDED_STRING, NOT_READABLE, NOT_RETURNED_BY_DEFAULT));
+        new ConnectorAttribute(
+            OperationalAttributes.PASSWORD_NAME,
+            PASSWORD.name(),
+            GUARDED_STRING,
+            NOT_READABLE,
+            NOT_RETURNED_BY_DEFAULT));
     result.add(new ConnectorAttribute(FORCE_CHANGE_PASSWORD_NEXT_SIGN_IN.name(), BOOLEAN));
     result.add(new ConnectorAttribute(FORCE_CHANGE_PASSWORD_NEXT_SIGN_IN_WITH_MFA.name(), BOOLEAN));
 
@@ -161,16 +162,16 @@ public class MicrosoftGraphUsersAdapter
     user.getGraphUser().passwordProfile.forceChangePasswordNextSignIn =
         AdapterValueTypeConverter.getSingleAttributeValue(
             Boolean.class, attributes, FORCE_CHANGE_PASSWORD_NEXT_SIGN_IN);
-    if(creation && user.getGraphUser().passwordProfile.forceChangePasswordNextSignIn == null){
-      user.getGraphUser().passwordProfile.forceChangePasswordNextSignIn = configuration.getForceChangePasswordOnCreate();
+    if (creation && user.getGraphUser().passwordProfile.forceChangePasswordNextSignIn == null) {
+      user.getGraphUser().passwordProfile.forceChangePasswordNextSignIn =
+          configuration.getForceChangePasswordOnCreate();
     }
     user.getGraphUser().passwordProfile.forceChangePasswordNextSignInWithMfa =
         AdapterValueTypeConverter.getSingleAttributeValue(
             Boolean.class, attributes, FORCE_CHANGE_PASSWORD_NEXT_SIGN_IN_WITH_MFA);
 
     user.getGraphUser().accountEnabled =
-            AdapterValueTypeConverter.getSingleAttributeValue(
-                Boolean.class, attributes, __ENABLE__);
+        AdapterValueTypeConverter.getSingleAttributeValue(Boolean.class, attributes, __ENABLE__);
     user.getGraphUser().mailNickname =
         AdapterValueTypeConverter.getSingleAttributeValue(String.class, attributes, EMAIL_NICKNAME);
 
@@ -329,7 +330,9 @@ public class MicrosoftGraphUsersAdapter
   @Override
   protected Set<Attribute> constructAttributes(MicrosoftGraphUser user) {
     Set<Attribute> attributes = new HashSet<>();
-    attributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, user.getGraphUser().accountEnabled));
+    attributes.add(
+        AttributeBuilder.build(
+            OperationalAttributes.ENABLE_NAME, user.getGraphUser().accountEnabled));
     attributes.add(AttributeBuilder.build(GIVEN_NAME.name(), user.getGraphUser().givenName));
     attributes.add(AttributeBuilder.build(SURNAME.name(), user.getGraphUser().surname));
     attributes.add(AttributeBuilder.build(EMAIL.name(), user.getGraphUser().mail));
@@ -469,7 +472,7 @@ public class MicrosoftGraphUsersAdapter
       List<String> licenses = new ArrayList<>();
       for (LicenseAssignmentState assignmentState : user.getGraphUser().licenseAssignmentStates) {
         if (assignmentState.assignedByGroup == null && assignmentState.skuId != null) {
-          licenses.add(configuration.getTenantId()+"_"+assignmentState.skuId.toString());
+          licenses.add(configuration.getTenantId() + "_" + assignmentState.skuId.toString());
         }
       }
       attributes.add(AttributeBuilder.build(ASSIGNED_LICENSES.name(), licenses));

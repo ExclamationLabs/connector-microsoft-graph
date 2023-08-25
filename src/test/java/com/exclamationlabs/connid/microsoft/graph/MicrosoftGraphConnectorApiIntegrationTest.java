@@ -22,9 +22,7 @@ import com.exclamationlabs.connid.base.connector.test.ApiIntegrationTest;
 import com.exclamationlabs.connid.base.microsoft.graph.configuration.MicrosoftGraphConfiguration;
 import com.exclamationlabs.connid.microsoft.graph.attribute.MicrosoftGraphGroupAttribute;
 import com.exclamationlabs.connid.microsoft.graph.attribute.MicrosoftGraphUserAttribute;
-
 import java.util.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.APIConfiguration;
@@ -454,14 +452,14 @@ public class MicrosoftGraphConnectorApiIntegrationTest
   @Order(140)
   public void test140UserGet() {
     results = new ArrayList<>();
-    ConnectorObject user = getConnectorFacade()
+    ConnectorObject user =
+        getConnectorFacade()
             .getObject(
-                    new ObjectClass("user"),
-                    new Uid(KNOWN_USER_ID, new Name("fred")),
-                    new OperationOptionsBuilder().build());
+                new ObjectClass("user"),
+                new Uid(KNOWN_USER_ID, new Name("fred")),
+                new OperationOptionsBuilder().build());
     assertTrue(
-            StringUtils.isNotBlank(
-                    user.getAttributeByName(Uid.NAME).getValue().get(0).toString()));
+        StringUtils.isNotBlank(user.getAttributeByName(Uid.NAME).getValue().get(0).toString()));
   }
 
   @Test

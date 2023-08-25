@@ -285,7 +285,7 @@ public class MicrosoftGraphUsersInvocator
     }
   }
 
-  private String removeTenantID(String license){
+  private String removeTenantID(String license) {
     return license.replaceAll(".*_", "");
   }
 
