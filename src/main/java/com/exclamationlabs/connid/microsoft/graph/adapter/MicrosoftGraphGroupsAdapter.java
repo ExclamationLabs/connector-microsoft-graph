@@ -184,9 +184,11 @@ public class MicrosoftGraphGroupsAdapter
     attributes.add(
         AttributeBuilder.build(
             IS_ASSIGNABLE_TO_ROLE.name(), group.getGraphGroup().isAssignableToRole));
-    attributes.add(
-        AttributeBuilder.build(
-            LICENSE_PROCESSING_STATE.name(), group.getGraphGroup().licenseProcessingState));
+    if (group.getGraphGroup().licenseProcessingState != null) {
+      attributes.add(
+          AttributeBuilder.build(
+              LICENSE_PROCESSING_STATE.name(), group.getGraphGroup().licenseProcessingState.state));
+    }
     attributes.add(AttributeBuilder.build(EMAIL.name(), group.getGraphGroup().mail));
     attributes.add(AttributeBuilder.build(EMAIL_ENABLED.name(), group.getGraphGroup().mailEnabled));
     attributes.add(
@@ -205,7 +207,7 @@ public class MicrosoftGraphGroupsAdapter
       attributes.add(
           AttributeBuilder.build(
               ON_PREMISES_LAST_SYNC_DATETIME.name(),
-              group.getGraphGroup().onPremisesLastSyncDateTime));
+              group.getGraphGroup().onPremisesLastSyncDateTime.toString()));
     }
     attributes.add(
         AttributeBuilder.build(
@@ -240,9 +242,11 @@ public class MicrosoftGraphGroupsAdapter
             SECURITY_IDENTIFIER.name(), group.getGraphGroup().securityIdentifier));
     attributes.add(AttributeBuilder.build(THEME.name(), group.getGraphGroup().theme));
     attributes.add(AttributeBuilder.build(VISIBILITY.name(), group.getGraphGroup().visibility));
-    attributes.add(
-        AttributeBuilder.build(
-            CREATED_ON_BEHALF_OF.name(), group.getGraphGroup().createdOnBehalfOf));
+    if (group.getGraphGroup().createdOnBehalfOf != null) {
+      attributes.add(
+          AttributeBuilder.build(
+              CREATED_ON_BEHALF_OF.name(), group.getGraphGroup().createdOnBehalfOf.id));
+    }
 
     // read assigned licenses - read-only
     if (group.getGraphGroup().assignedLicenses != null

@@ -1,6 +1,7 @@
 # connector-microsoft-graph
 
 ## Change Log
++ **1.1.1** - Fix Group attribute return types (2023/09/28)
 + **1.1.0**
   + ***Improvements:***
     + Native password support
