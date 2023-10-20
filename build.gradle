@@ -47,17 +47,22 @@ def versionNumber = "${project_version}"
 dependencies {
 
     // Required for MidPoint runtime
-    runtimeOnly 'org.codehaus.groovy:groovy:2.5.2'
+    runtimeOnly 'org.codehaus.groovy:groovy:2.5.14'
     runtimeOnly 'com.evolveum.polygon:connector-common:1.5.0.0'
+    runtimeOnly 'commons-codec:commons-codec:1.15'
 
     // Microsoft Graph SDK
     implementation 'com.microsoft.graph:microsoft-graph:5.45.0'
     // Needed for TokenCredentialAuthProvider
-    implementation 'com.azure:azure-identity:1.7.3'
+    implementation 'com.azure:azure-identity:1.10.3'
+
+    // Vulnerability updates
+    implementation 'io.netty:netty-codec-http2:4.1.100.Final'
+    implementation 'com.squareup.okio:okio:3.4.0'
 
     // HTTP/RESTful support
-    implementation 'com.google.code.gson:gson:2.8.6'
-    implementation 'org.apache.httpcomponents:httpclient:4.5.10'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'org.apache.httpcomponents:httpclient:4.5.14'
 
     implementation "com.exclamationlabs.connid:connector-base:${base_connector_version}-+"
 
