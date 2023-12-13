@@ -22,6 +22,7 @@ import com.exclamationlabs.connid.microsoft.graph.model.MicrosoftGraphUser;
 import com.microsoft.graph.http.GraphServiceException;
 import com.microsoft.graph.models.*;
 import com.microsoft.graph.requests.UserCollectionPage;
+import com.microsoft.graph.requests.UserCollectionRequestBuilder;
 import java.util.*;
 import java.util.List;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
@@ -178,6 +179,7 @@ public class MicrosoftGraphUsersInvocator
       ResultsPaginator resultsPaginator,
       Integer integer)
       throws ConnectorException {
+    List<User> usersList = new ArrayList<>();
     Set<MicrosoftGraphUser> response = new HashSet<>();
     UserCollectionPage usersPage;
     try {
@@ -195,6 +197,7 @@ public class MicrosoftGraphUsersInvocator
                 .select(String.join(",", summaryFields))
                 .filter(modelFieldName + " eq '" + resultsFilter.getValue() + "'")
                 .get();
+        usersList = usersPage.getCurrentPage();
       } else {
         usersPage =
             driver
@@ -202,14 +205,24 @@ public class MicrosoftGraphUsersInvocator
                 .users()
                 .buildRequest()
                 .select(String.join(",", summaryFields))
+                .top(MicrosoftGraphDriver.SDK_FETCH_COUNT)
                 .get();
+        while (usersPage != null) {
+          usersList.addAll(usersPage.getCurrentPage());
+
+          final UserCollectionRequestBuilder nextPage = usersPage.getNextPage();
+          if (nextPage == null) {
+            break;
+          } else {
+            usersPage = nextPage.buildRequest().get();
+          }
+        }
       }
 
       if (usersPage == null) {
         throw new ConnectorException("Failure retrieving page of users.");
       }
 
-      List<User> usersList = usersPage.getCurrentPage();
       usersList.forEach(it -> response.add(new MicrosoftGraphUser(it)));
     } catch (GraphServiceException gse) {
       driver.handleGraphServiceException(gse);

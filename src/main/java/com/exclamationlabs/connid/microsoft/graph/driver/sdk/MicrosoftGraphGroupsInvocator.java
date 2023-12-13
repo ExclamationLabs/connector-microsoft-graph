@@ -21,6 +21,7 @@ import com.exclamationlabs.connid.microsoft.graph.model.MicrosoftGraphGroup;
 import com.microsoft.graph.http.GraphServiceException;
 import com.microsoft.graph.models.Group;
 import com.microsoft.graph.requests.GroupCollectionPage;
+import com.microsoft.graph.requests.GroupCollectionRequestBuilder;
 import java.util.*;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Name;
@@ -134,6 +135,7 @@ public class MicrosoftGraphGroupsInvocator
       Integer integer)
       throws ConnectorException {
     Set<MicrosoftGraphGroup> response = new HashSet<>();
+    List<Group> groupList = new ArrayList<>();
     try {
       GroupCollectionPage page;
 
@@ -157,15 +159,25 @@ public class MicrosoftGraphGroupsInvocator
                 .groups()
                 .buildRequest()
                 .select(String.join(",", summaryFields))
+                .top(MicrosoftGraphDriver.SDK_FETCH_COUNT)
                 .get();
+        while (page != null) {
+          groupList.addAll(page.getCurrentPage());
+
+          final GroupCollectionRequestBuilder nextPage = page.getNextPage();
+          if (nextPage == null) {
+            break;
+          } else {
+            page = nextPage.buildRequest().get();
+          }
+        }
       }
       driver.getGraphClient().groups().buildRequest().select(String.join(",", summaryFields)).get();
       if (page == null) {
         throw new ConnectorException("Failure retrieving page of users.");
       }
 
-      List<Group> groups = page.getCurrentPage();
-      groups.forEach(it -> response.add(new MicrosoftGraphGroup(it)));
+      groupList.forEach(it -> response.add(new MicrosoftGraphGroup(it)));
     } catch (GraphServiceException gse) {
       driver.handleGraphServiceException(gse);
     }

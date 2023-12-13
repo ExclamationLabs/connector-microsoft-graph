@@ -550,7 +550,7 @@ public class MicrosoftGraphConnectorApiIntegrationTest
     results = new ArrayList<>();
     getConnectorFacade()
         .search(new ObjectClass("group"), null, handler, new OperationOptionsBuilder().build());
-    assertTrue(results.size() >= 1);
+    assertFalse(results.isEmpty());
     assertTrue(
         StringUtils.isNotBlank(
             results.get(0).getAttributeByName(Uid.NAME).getValue().get(0).toString()));
@@ -834,7 +834,7 @@ public class MicrosoftGraphConnectorApiIntegrationTest
     results = new ArrayList<>();
     getConnectorFacade()
         .search(new ObjectClass("license"), null, handler, new OperationOptionsBuilder().build());
-    assertTrue(results.size() >= 1);
+    assertFalse(results.isEmpty());
     assertTrue(
         StringUtils.isNotBlank(
             results.get(0).getAttributeByName(Uid.NAME).getValue().get(0).toString()));
