@@ -1,6 +1,7 @@
 # connector-microsoft-graph
 
 ## Change Log
++ **1.2.0** - FIN-11168 Fix results capping at 100 (2023/12/13)
 + **1.1.2** - FIN-11068 Snyk vulnerabilities (2023/10/20)
 + **1.1.1** - Fix Group attribute return types (2023/09/28)
 + **1.1.0**

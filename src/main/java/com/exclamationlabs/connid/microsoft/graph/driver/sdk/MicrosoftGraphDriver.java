@@ -34,6 +34,8 @@ import org.identityconnectors.framework.common.exceptions.ConnectorSecurityExcep
 
 public class MicrosoftGraphDriver extends BaseDriver<MicrosoftGraphConfiguration> {
 
+  static final int SDK_FETCH_COUNT = 50;
+
   private GraphServiceClient<Request> graphClient;
 
   public MicrosoftGraphDriver() {
