@@ -54,7 +54,7 @@ dependencies {
     // Microsoft Graph SDK
     implementation 'com.microsoft.graph:microsoft-graph:5.45.0'
     // Needed for TokenCredentialAuthProvider
-    implementation 'com.azure:azure-identity:1.10.3'
+    implementation 'com.azure:azure-identity:1.11.1'
 
     // Vulnerability updates
     implementation 'io.netty:netty-codec-http2:4.1.100.Final'
