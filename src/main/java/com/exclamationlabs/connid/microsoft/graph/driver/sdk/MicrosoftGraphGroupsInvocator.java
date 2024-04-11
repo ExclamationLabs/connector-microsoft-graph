@@ -20,6 +20,7 @@ import com.exclamationlabs.connid.microsoft.graph.attribute.MicrosoftGraphUserAt
 import com.exclamationlabs.connid.microsoft.graph.model.MicrosoftGraphGroup;
 import com.microsoft.graph.http.GraphServiceException;
 import com.microsoft.graph.models.Group;
+import com.microsoft.graph.models.Team;
 import com.microsoft.graph.requests.GroupCollectionPage;
 import com.microsoft.graph.requests.GroupCollectionRequestBuilder;
 import java.util.*;
@@ -177,7 +178,11 @@ public class MicrosoftGraphGroupsInvocator
         throw new ConnectorException("Failure retrieving page of users.");
       }
 
-      groupList.forEach(it -> response.add(new MicrosoftGraphGroup(it)));
+      for (Group current : groupList) {
+        MicrosoftGraphGroup currentGroup = new MicrosoftGraphGroup(current);
+        currentGroup.setMsTeam(checkMsTeamType(driver, currentGroup.getIdentityIdValue()));
+        response.add(currentGroup);
+      }
     } catch (GraphServiceException gse) {
       driver.handleGraphServiceException(gse);
     }
@@ -195,7 +200,10 @@ public class MicrosoftGraphGroupsInvocator
               .buildRequest()
               .select(String.join(",", detailFields))
               .get();
-      return new MicrosoftGraphGroup(matchingGroup);
+
+      MicrosoftGraphGroup returnGroup = new MicrosoftGraphGroup(matchingGroup);
+      returnGroup.setMsTeam(checkMsTeamType(driver, id));
+      return returnGroup;
     } catch (GraphServiceException gse) {
       driver.handleGraphServiceException(gse);
     }
@@ -208,5 +216,22 @@ public class MicrosoftGraphGroupsInvocator
         getAll(driver, new ResultsFilter(Name.NAME, nameValue), new ResultsPaginator(), null);
     Optional<MicrosoftGraphGroup> groupGet = groups.stream().findFirst();
     return groupGet.orElse(null);
+  }
+
+  protected Boolean checkMsTeamType(MicrosoftGraphDriver driver, String groupId) {
+    // Check MS Team info for group
+    try {
+      Team teamInfo =
+          Objects.requireNonNull(driver.getGraphClient().teams().byId(groupId))
+              .buildRequest()
+              .get();
+      return (teamInfo != null);
+    } catch (GraphServiceException gse) {
+      if (gse.getResponseCode() == 404) {
+        return false;
+      } else {
+        throw gse;
+      }
+    }
   }
 }

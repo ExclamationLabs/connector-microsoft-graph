@@ -49,5 +49,11 @@ public enum MicrosoftGraphGroupAttribute {
 
   CREATED_ON_BEHALF_OF,
 
-  ASSIGNED_LICENSES // read-only
+  ASSIGNED_LICENSES, // read-only
+
+  IS_MS_365,
+  IS_MS_TEAM,
+  IS_SECURITY_GROUP,
+  IS_MAIL_ENABLED_SECURITY_GROUP,
+  IS_DISTRIBUTION_GROUP
 }
