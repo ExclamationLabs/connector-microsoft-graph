@@ -40,21 +40,23 @@ public class MicrosoftGraphConnectorApiIntegrationTest
 
   private static final String VALID_PASSWORD_VALUE = "D8weoIru#4";
 
-  private static final String KNOWN_USER_ID = "redacted";
-  private static final String KNOWN_USERNAME = "redacted";
-  private static final String KNOWN_GIVEN_NAME = "redacted";
-  private static final String KNOWN_SURNAME = "redacted";
-  private static final String KNOWN_USERTYPE = "redacted";
+  private static final String KNOWN_USER_ID = "49587c8a-524c-4ef4-bfcb-792006c553aa"; // Brandon
+  private static final String KNOWN_USERNAME = "Brandon Powers";
+  private static final String KNOWN_GIVEN_NAME = "Brandon";
+  private static final String KNOWN_SURNAME = "Powers";
+  private static final String KNOWN_USERTYPE = "Member";
 
-  private static final String KNOWN_EMAIL = "redacted";
+  private static final String KNOWN_EMAIL = "brandon@exclamationlabs.com";
 
-  private static final String KNOWN_GROUP_ID = "redacted";
-  private static final String KNOWN_GROUP_NAME = "redacted";
-  private static final String KNOWN_GROUP_EMAIL = "redacted";
+  private static final String KNOWN_GROUP_ID =
+      "af9c71d9-63da-44b6-afb1-bb4945118243"; // Exclamation Labs
+  private static final String KNOWN_GROUP_NAME = "Exclamation Labs";
+  private static final String KNOWN_GROUP_EMAIL = "ExclamationLabs@exclamationlabs.com";
 
-  private static final String KNOWN_LICENSE_ID = "redacted";
+  private static final String KNOWN_LICENSE_ID = "f30db892-07e9-47e9-837c-80727f46fd3d";
 
-  private static final String KNOWN_LICENSE_DETAIL_ID = "redacted";
+  private static final String KNOWN_LICENSE_DETAIL_ID =
+      "0c4511a0-6604-4951-bcd9-8ad356dde6ca_f30db892-07e9-47e9-837c-80727f46fd3d";
 
   private static String generatedUserId;
   private static String generatedGroupId;

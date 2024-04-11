@@ -1,6 +1,7 @@
 # connector-microsoft-graph
 
 ## Change Log
++ **1.2.2** - FIN-11657 Group details attributes/MS Team identification (2024/04/11)
 + **1.2.1** - FIN-11093 Fix Azure identity vulnerability (2023/12/26)
 + **1.2.0** - FIN-11168 Fix results capping at 100 (2023/12/13)
 + **1.1.2** - FIN-11068 Snyk vulnerabilities (2023/10/20)

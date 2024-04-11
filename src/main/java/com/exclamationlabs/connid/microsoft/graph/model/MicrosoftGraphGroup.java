@@ -19,6 +19,7 @@ import com.microsoft.graph.models.Group;
 public class MicrosoftGraphGroup implements IdentityModel {
 
   private Group graphGroup;
+  private Boolean msTeam = false;
 
   public MicrosoftGraphGroup(Group group) {
     setGraphGroup(group);
@@ -40,5 +41,13 @@ public class MicrosoftGraphGroup implements IdentityModel {
 
   public void setGraphGroup(Group graphGroup) {
     this.graphGroup = graphGroup;
+  }
+
+  public Boolean getMsTeam() {
+    return msTeam;
+  }
+
+  public void setMsTeam(Boolean msTeam) {
+    this.msTeam = msTeam;
   }
 }
