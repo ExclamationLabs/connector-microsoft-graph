@@ -63,6 +63,7 @@ dependencies {
     // Vulnerability updates
     implementation 'io.netty:netty-codec-http2:4.1.100.Final'
     implementation 'com.squareup.okio:okio:3.4.0'
+    implementation 'com.google.guava:guava:33.1.0-jre'
 
     // HTTP/RESTful support
     implementation 'com.google.code.gson:gson:2.10.1'
