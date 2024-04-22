@@ -1,6 +1,7 @@
 # connector-microsoft-graph
 
 ## Change Log
++ **1.2.4** - FIN-11743 Update Guava vulnerability (2024/04/22)
 + **1.2.3** - FIN-11742 Update Guava vulnerability (2024/04/22)
 + **1.2.2** - FIN-11657 Group details attributes/MS Team identification (2024/04/11)
 + **1.2.1** - FIN-11093 Fix Azure identity vulnerability (2023/12/26)

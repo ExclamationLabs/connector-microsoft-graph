@@ -61,7 +61,8 @@ dependencies {
     implementation 'com.azure:azure-identity:1.11.1'
 
     // Vulnerability updates
-    implementation 'io.netty:netty-codec-http2:4.1.100.Final'
+    implementation 'io.netty:netty-codec-http:4.1.108.Final'
+    implementation 'io.netty:netty-codec-http2:4.1.108.Final'
     implementation 'com.squareup.okio:okio:3.4.0'
     implementation 'com.google.guava:guava:33.1.0-jre'
 
