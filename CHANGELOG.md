@@ -1,6 +1,7 @@
 # connector-microsoft-graph
 
 ## Change Log
++ **1.2.5** - FIN-11826 - Upgraded BouncyCastle Package(s) to Resolve Vulnerabilities (07/11/2024)
 + **1.2.4** - FIN-11743 Update Guava vulnerability (2024/04/22)
 + **1.2.3** - FIN-11742 Update Guava vulnerability (2024/04/22)
 + **1.2.2** - FIN-11657 Group details attributes/MS Team identification (2024/04/11)
