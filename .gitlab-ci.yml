@@ -6,7 +6,6 @@ deploy-artifacts:
   image: gradle:7.2-jdk11
   before_script:
     - export BUILD_NUMBER=${CI_PIPELINE_IID}
-    - export GAR_KEY=${GAR_GEN_OPS_REGISTRY_KEY_B64}
   script:
     - 'gradle clean publish'
   only:
