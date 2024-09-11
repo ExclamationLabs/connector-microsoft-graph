@@ -55,9 +55,10 @@ dependencies {
     runtimeOnly 'commons-codec:commons-codec:1.15'
 
     // Microsoft Graph SDK
-    implementation 'com.microsoft.graph:microsoft-graph:5.45.0'
+    implementation 'com.microsoft.graph:microsoft-graph:5.80.0'
+
     // Needed for TokenCredentialAuthProvider
-    implementation 'com.azure:azure-identity:1.11.1'
+    implementation 'com.azure:azure-identity:1.12.2'
 
     // Vulnerability updates
     implementation 'io.netty:netty-codec-http:4.1.108.Final'
