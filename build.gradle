@@ -65,6 +65,7 @@ dependencies {
     implementation 'io.netty:netty-codec-http2:4.1.108.Final'
     implementation 'com.squareup.okio:okio:3.4.0'
     implementation 'com.google.guava:guava:33.1.0-jre'
+    implementation 'org.springframework:spring-expression:5.3.39'
 
     // HTTP/RESTful support
     implementation 'com.google.code.gson:gson:2.10.1'
