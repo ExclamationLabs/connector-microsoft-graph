@@ -1,6 +1,7 @@
 # connector-microsoft-graph
 
 ## Change Log
++ **1.2.8** - FIN-12476 - Upgrade Spring Expression Package - Fix Vulnerabilities (10/10/2024)
 + **1.2.7** - FIN-11967 - Update MS Graph and Azure Identity Versions - Vulnerability Fix (2024/09/10)
 + **1.2.6** - FIN-12386 - Update for GAR Support and Update Base Connector Version (09/03/2024)
 + **1.2.5** - FIN-11826 - Upgraded BouncyCastle Package(s) to Resolve Vulnerabilities (07/11/2024)
