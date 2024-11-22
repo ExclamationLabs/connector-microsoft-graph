@@ -115,17 +115,7 @@ public class MicrosoftGraphGroupsInvocator
 
   @Override
   public void delete(MicrosoftGraphDriver driver, String id) throws ConnectorException {
-    try {
-      Objects.requireNonNull(
-              driver.getGraphClient().groups().byId(id),
-              String.format("MSGraph group byId %s produced null result", id))
-          .buildRequest()
-          .delete();
-    } catch (GraphServiceException gse) {
-      driver.handleGraphServiceException(gse);
-      throw new ConnectorException(
-          "Unexpected GraphServiceException occurred during group delete", gse);
-    }
+    throw new UnsupportedOperationException("Delete not supported for MS Graph groups");
   }
 
   @Override
