@@ -58,7 +58,7 @@ dependencies {
     implementation 'com.microsoft.graph:microsoft-graph:5.80.0'
 
     // Needed for TokenCredentialAuthProvider
-    implementation 'com.azure:azure-identity:1.12.2'
+    implementation 'com.azure:azure-identity:1.15.0'
 
     // Vulnerability updates
     implementation 'io.netty:netty-codec-http:4.1.108.Final'
@@ -115,7 +115,7 @@ task fatJar(type: Jar) {
 
     manifest {
         attributes("ConnectorBundle-FrameworkVersion": "1.4.3.11",
-                "ConnectorBundle-Version": versionNumber,
+                "ConnectorBundle-Version": versionNumber+"-rc.2",
                 "ConnectorBundle-Name": project.name)
     }
 }

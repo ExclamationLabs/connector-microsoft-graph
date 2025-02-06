@@ -31,7 +31,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.identityconnectors.framework.common.objects.*;
 
 public class MicrosoftGraphGroupsAdapter
@@ -98,6 +97,7 @@ public class MicrosoftGraphGroupsAdapter
 
     result.add(new ConnectorAttribute(CREATED_ON_BEHALF_OF.name(), STRING));
 
+    result.add(new ConnectorAttribute(IS_DYNAMIC.name(), BOOLEAN));
     result.add(new ConnectorAttribute(IS_MS_365.name(), BOOLEAN));
     result.add(new ConnectorAttribute(IS_MS_TEAM.name(), BOOLEAN));
     result.add(new ConnectorAttribute(IS_SECURITY_GROUP.name(), BOOLEAN));
@@ -271,10 +271,20 @@ public class MicrosoftGraphGroupsAdapter
     // Additional group identification flags
     boolean is365Group =
         group.getGraphGroup().groupTypes != null
-            && group.getGraphGroup().groupTypes.size() == 1
-            && StringUtils.equalsIgnoreCase("Unified", group.getGraphGroup().groupTypes.get(0))
+            && !group.getGraphGroup().groupTypes.isEmpty()
+            && group.getGraphGroup().groupTypes.stream()
+                .anyMatch(s -> s.equalsIgnoreCase("Unified"))
+            && group.getGraphGroup().groupTypes.stream()
+                .noneMatch(s -> s.equalsIgnoreCase("DynamicMembership"))
             && BooleanUtils.isTrue(group.getGraphGroup().mailEnabled);
     attributes.add(AttributeBuilder.build(IS_MS_365.name(), is365Group));
+    boolean isDynamicMembershipGroup =
+        group.getGraphGroup().groupTypes != null
+            && !group.getGraphGroup().groupTypes.isEmpty()
+            && group.getGraphGroup().groupTypes.stream()
+                .anyMatch(s -> s.equalsIgnoreCase("DynamicMembership"))
+            && BooleanUtils.isTrue(group.getGraphGroup().mailEnabled);
+    attributes.add(AttributeBuilder.build(IS_DYNAMIC.name(), isDynamicMembershipGroup));
     boolean isSecurity =
         (group.getGraphGroup().groupTypes == null || group.getGraphGroup().groupTypes.isEmpty())
             && BooleanUtils.isFalse(group.getGraphGroup().mailEnabled)

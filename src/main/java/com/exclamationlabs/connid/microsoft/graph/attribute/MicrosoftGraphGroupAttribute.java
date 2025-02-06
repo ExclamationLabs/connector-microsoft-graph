@@ -51,6 +51,7 @@ public enum MicrosoftGraphGroupAttribute {
 
   ASSIGNED_LICENSES, // read-only
 
+  IS_DYNAMIC,
   IS_MS_365,
   IS_MS_TEAM,
   IS_SECURITY_GROUP,
