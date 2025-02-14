@@ -282,8 +282,7 @@ public class MicrosoftGraphGroupsAdapter
         group.getGraphGroup().groupTypes != null
             && !group.getGraphGroup().groupTypes.isEmpty()
             && group.getGraphGroup().groupTypes.stream()
-                .anyMatch(s -> s.equalsIgnoreCase("DynamicMembership"))
-            && BooleanUtils.isTrue(group.getGraphGroup().mailEnabled);
+                .anyMatch(s -> s.equalsIgnoreCase("DynamicMembership"));
     attributes.add(AttributeBuilder.build(IS_DYNAMIC.name(), isDynamicMembershipGroup));
     boolean isSecurity =
         (group.getGraphGroup().groupTypes == null || group.getGraphGroup().groupTypes.isEmpty())
