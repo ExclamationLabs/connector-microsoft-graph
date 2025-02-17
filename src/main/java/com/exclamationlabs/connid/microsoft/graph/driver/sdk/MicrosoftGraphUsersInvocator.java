@@ -115,6 +115,14 @@ public class MicrosoftGraphUsersInvocator
   @Override
   public String create(MicrosoftGraphDriver driver, MicrosoftGraphUser newUser)
       throws ConnectorException {
+    if (driver.getConfiguration().getEnableDebugHttpLogging()) {
+      try {
+        driver.logTransactionPayload(this.getClass(), "post", newUser.getGraphUser());
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+
     try {
       final User createdUser =
           driver.getGraphClient().users().buildRequest().post(newUser.getGraphUser());
@@ -128,14 +136,26 @@ public class MicrosoftGraphUsersInvocator
       return createdUser.id;
     } catch (GraphServiceException gse) {
       driver.handleGraphServiceException(gse);
-      throw new ConnectorException(
-          "Unexpected GraphServiceException occurred during user create", gse);
+      if(gse.toString()!=null && driver.getConfiguration().getEnableDebugHttpLogging()){
+        throw new ConnectorException(
+            "Unexpected GraphServiceException occurred during user create:" + gse.toString() , gse);
+      }else{
+        throw new ConnectorException(
+            "Unexpected GraphServiceException occurred during user create:" , gse);
+      }
     }
   }
 
   @Override
   public void update(MicrosoftGraphDriver driver, String id, MicrosoftGraphUser modifiedUser)
       throws ConnectorException {
+    if (driver.getConfiguration().getEnableDebugHttpLogging()) {
+      try {
+        driver.logTransactionPayload(this.getClass(), "patch", modifiedUser.getGraphUser());
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
     try {
       Objects.requireNonNull(
               driver.getGraphClient().users().byId(id),
@@ -152,13 +172,26 @@ public class MicrosoftGraphUsersInvocator
 
     } catch (GraphServiceException gse) {
       driver.handleGraphServiceException(gse);
-      throw new ConnectorException(
-          "Unexpected GraphServiceException occurred during user update", gse);
+      if(gse.toString()!=null && driver.getConfiguration().getEnableDebugHttpLogging()){
+        throw new ConnectorException(
+            "Unexpected GraphServiceException occurred during user update:" + gse.toString() , gse);
+      }else{
+        throw new ConnectorException(
+            "Unexpected GraphServiceException occurred during user update:" , gse);
+      }
     }
+    System.out.println("Test");
   }
 
   @Override
   public void delete(MicrosoftGraphDriver driver, String id) throws ConnectorException {
+    if (driver.getConfiguration().getEnableDebugHttpLogging()) {
+      try {
+        driver.logTransactionPayload(this.getClass(), "delete", driver.getGraphClient().users().byId(id));
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
     try {
       Objects.requireNonNull(
               driver.getGraphClient().users().byId(id),
@@ -167,8 +200,13 @@ public class MicrosoftGraphUsersInvocator
           .delete();
     } catch (GraphServiceException gse) {
       driver.handleGraphServiceException(gse);
-      throw new ConnectorException(
-          "Unexpected GraphServiceException occurred during user delete", gse);
+      if(gse.toString()!=null && driver.getConfiguration().getEnableDebugHttpLogging()){
+        throw new ConnectorException(
+            "Unexpected GraphServiceException occurred during user delete:" + gse.toString() , gse);
+      }else{
+        throw new ConnectorException(
+            "Unexpected GraphServiceException occurred during user delete:" , gse);
+      }
     }
   }
 
@@ -225,7 +263,15 @@ public class MicrosoftGraphUsersInvocator
 
       usersList.forEach(it -> response.add(new MicrosoftGraphUser(it)));
     } catch (GraphServiceException gse) {
+      if(gse.toString()!=null && driver.getConfiguration().getEnableDebugHttpLogging()){
+        Logger.error(
+            this,
+            String.format(
+                "Exception in user.getAll %s", gse.toString()),
+            gse);
+      }
       driver.handleGraphServiceException(gse);
+
     }
     return response;
   }
@@ -244,6 +290,13 @@ public class MicrosoftGraphUsersInvocator
               .get();
       return new MicrosoftGraphUser(matchingUser);
     } catch (GraphServiceException gse) {
+      if(gse.toString()!=null && driver.getConfiguration().getEnableDebugHttpLogging()){
+        Logger.error(
+            this,
+            String.format(
+                "Exception in user.getOne %s", gse.toString()),
+            gse);
+      }
       driver.handleGraphServiceException(gse);
     }
     return null;
@@ -292,9 +345,23 @@ public class MicrosoftGraphUsersInvocator
       Logger.error(
           this,
           String.format(
-              "Graph exception occurred while adding/removing licenses for user %s", userId),
+              "Graph exception occurred while updateUserLicenseAssignments for user %s", userId),
           gse);
-      throw gse;
+      if(gse.toString()!=null && driver.getConfiguration().getEnableDebugHttpLogging()){
+        Logger.error(
+            this,
+            String.format(
+                "Graph exception occurred while updateUserLicenseAssignments for user %s Details: %s", userId, gse.toString()),
+            gse);
+      }
+      driver.handleGraphServiceException(gse);
+      if(gse.toString()!=null && driver.getConfiguration().getEnableDebugHttpLogging()){
+        throw new ConnectorException(
+            "Unexpected GraphServiceException occurred during updateUserLicenseAssignments:" + gse.toString() , gse);
+      }else{
+        throw new ConnectorException(
+            "Unexpected GraphServiceException occurred during updateUserLicenseAssignments:" , gse);
+      }
     }
   }
 
@@ -304,6 +371,13 @@ public class MicrosoftGraphUsersInvocator
 
   private void addGroupToUser(String groupId, String userId, MicrosoftGraphDriver driver)
       throws GraphServiceException {
+    if (driver.getConfiguration().getEnableDebugHttpLogging()) {
+      try {
+        driver.logTransactionPayload(this.getClass(), "post", driver.getGraphClient().groups(groupId).members().references());
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
     try {
       DirectoryObject directoryObject = new DirectoryObject();
       directoryObject.id = userId;
@@ -320,12 +394,26 @@ public class MicrosoftGraphUsersInvocator
           String.format(
               "Graph exception occurred while adding group %s to user %s", groupId, userId),
           gse);
-      throw gse;
+      driver.handleGraphServiceException(gse);
+      if(gse.toString()!=null && driver.getConfiguration().getEnableDebugHttpLogging()){
+        throw new ConnectorException(
+            "Unexpected GraphServiceException occurred during addGroupToUser:" + gse.toString() , gse);
+      }else{
+        throw new ConnectorException(
+            "Unexpected GraphServiceException occurred during addGroupToUser:" , gse);
+      }
     }
   }
 
   private void removeGroupFromUser(String groupId, String userId, MicrosoftGraphDriver driver)
       throws GraphServiceException {
+    if (driver.getConfiguration().getEnableDebugHttpLogging()) {
+      try {
+        driver.logTransactionPayload(this.getClass(), "delete", driver.getGraphClient().groups(groupId).members().references());
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
     try {
       Objects.requireNonNull(
               driver.getGraphClient().groups(groupId).members(userId).reference(),
@@ -339,7 +427,14 @@ public class MicrosoftGraphUsersInvocator
           String.format(
               "Graph exception occurred while removing group %s from user %s", groupId, userId),
           gse);
-      throw gse;
+      driver.handleGraphServiceException(gse);
+      if(gse.toString()!=null && driver.getConfiguration().getEnableDebugHttpLogging()){
+        throw new ConnectorException(
+            "Unexpected GraphServiceException occurred during removeGroupFromUser:" + gse.toString() , gse);
+      }else{
+        throw new ConnectorException(
+            "Unexpected GraphServiceException occurred during removeGroupFromUser:" , gse);
+      }
     }
   }
 }
