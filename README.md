@@ -62,3 +62,4 @@ currently deprecated and is to be retired June 30. 2023.
 - security.authenticator.oauth2ClientCredentials.clientSecret - Set to Client Secret value generated for your application belonging to your Azure AD tenant.
 - custom.tenantId - Set to the Tenant Id of your Microsoft Azure AD Tenant
 - results.pagination - Should be `false` since pagination as not supported as discussed above.
+- enableDebugHttpLogging - set to `true` if you want to enable the debug logging.

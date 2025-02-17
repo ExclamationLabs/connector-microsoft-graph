@@ -18,6 +18,7 @@ custom:
         type: boolean
         display: 'Debug logging details'
         help: 'This option will expand logs to show more details'
+        default: 'false'
     optional:
       forceChangePasswordOnCreate:
         type: boolean

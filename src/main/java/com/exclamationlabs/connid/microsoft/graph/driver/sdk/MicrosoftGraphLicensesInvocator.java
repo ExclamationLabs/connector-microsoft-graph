@@ -62,12 +62,8 @@ public class MicrosoftGraphLicensesInvocator
       List<SubscribedSku> licenses = page.getCurrentPage();
       licenses.forEach(it -> response.add(new MicrosoftGraphLicense(it)));
     } catch (GraphServiceException gse) {
-      if(gse.toString()!=null && driver.getConfiguration().getEnableDebugHttpLogging()){
-        Logger.error(
-            this,
-            String.format(
-                "Exception in license.getAll %s", gse.toString()),
-            gse);
+      if (gse.toString() != null && driver.getConfiguration().getEnableDebugHttpLogging()) {
+        Logger.error(this, String.format("Exception in license.getAll %s", gse.toString()), gse);
       }
       driver.handleGraphServiceException(gse);
     }
@@ -86,12 +82,8 @@ public class MicrosoftGraphLicensesInvocator
               .get();
       return new MicrosoftGraphLicense(matchingLicense);
     } catch (GraphServiceException gse) {
-      if(gse.toString()!=null && driver.getConfiguration().getEnableDebugHttpLogging()){
-        Logger.error(
-            this,
-            String.format(
-                "Exception in license.getOne %s", gse.toString()),
-            gse);
+      if (gse.toString() != null && driver.getConfiguration().getEnableDebugHttpLogging()) {
+        Logger.error(this, String.format("Exception in license.getOne %s", gse.toString()), gse);
       }
       driver.handleGraphServiceException(gse);
     }

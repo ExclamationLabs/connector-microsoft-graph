@@ -100,12 +100,12 @@ public class MicrosoftGraphGroupsInvocator
       return createdGroup.id;
     } catch (GraphServiceException gse) {
       driver.handleGraphServiceException(gse);
-      if(gse.toString()!=null && driver.getConfiguration().getEnableDebugHttpLogging()){
+      if (gse.toString() != null && driver.getConfiguration().getEnableDebugHttpLogging()) {
         throw new ConnectorException(
-            "Unexpected GraphServiceException occurred during group create:" + gse.toString() , gse);
-      }else{
+            "Unexpected GraphServiceException occurred during group create:" + gse.toString(), gse);
+      } else {
         throw new ConnectorException(
-            "Unexpected GraphServiceException occurred during group create:" , gse);
+            "Unexpected GraphServiceException occurred during group create:", gse);
       }
     }
   }
@@ -128,12 +128,12 @@ public class MicrosoftGraphGroupsInvocator
           .patch(modifiedGroup.getGraphGroup());
     } catch (GraphServiceException gse) {
       driver.handleGraphServiceException(gse);
-      if(gse.toString()!=null && driver.getConfiguration().getEnableDebugHttpLogging()){
+      if (gse.toString() != null && driver.getConfiguration().getEnableDebugHttpLogging()) {
         throw new ConnectorException(
-            "Unexpected GraphServiceException occurred during group update:" + gse.toString() , gse);
-      }else{
+            "Unexpected GraphServiceException occurred during group update:" + gse.toString(), gse);
+      } else {
         throw new ConnectorException(
-            "Unexpected GraphServiceException occurred during group update:" , gse);
+            "Unexpected GraphServiceException occurred during group update:", gse);
       }
     }
   }
@@ -199,12 +199,8 @@ public class MicrosoftGraphGroupsInvocator
         response.add(currentGroup);
       }
     } catch (GraphServiceException gse) {
-      if(gse.toString()!=null && driver.getConfiguration().getEnableDebugHttpLogging()){
-        Logger.error(
-            this,
-            String.format(
-                "Exception in groups.getAll %s", gse.toString()),
-            gse);
+      if (gse.toString() != null && driver.getConfiguration().getEnableDebugHttpLogging()) {
+        Logger.error(this, String.format("Exception in groups.getAll %s", gse.toString()), gse);
       }
       driver.handleGraphServiceException(gse);
     }
@@ -227,12 +223,8 @@ public class MicrosoftGraphGroupsInvocator
       returnGroup.setMsTeam(checkMsTeamType(driver, id));
       return returnGroup;
     } catch (GraphServiceException gse) {
-      if(gse.toString()!=null && driver.getConfiguration().getEnableDebugHttpLogging()){
-        Logger.error(
-            this,
-            String.format(
-                "Exception in groups.getOne %s", gse.toString()),
-            gse);
+      if (gse.toString() != null && driver.getConfiguration().getEnableDebugHttpLogging()) {
+        Logger.error(this, String.format("Exception in groups.getOne %s", gse.toString()), gse);
       }
       driver.handleGraphServiceException(gse);
     }
@@ -260,14 +252,14 @@ public class MicrosoftGraphGroupsInvocator
         return false;
       } else {
         driver.handleGraphServiceException(gse);
-        if(gse.toString()!=null && driver.getConfiguration().getEnableDebugHttpLogging()){
+        if (gse.toString() != null && driver.getConfiguration().getEnableDebugHttpLogging()) {
           throw new ConnectorException(
-              "Unexpected GraphServiceException occurred during checkMsTeamType:" + gse.toString() , gse);
-        }else{
+              "Unexpected GraphServiceException occurred during checkMsTeamType:" + gse.toString(),
+              gse);
+        } else {
           throw new ConnectorException(
-              "Unexpected GraphServiceException occurred during checkMsTeamType:" , gse);
+              "Unexpected GraphServiceException occurred during checkMsTeamType:", gse);
         }
-
       }
     }
   }

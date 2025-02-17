@@ -53,13 +53,14 @@ public class MicrosoftGraphAuthenticator implements Authenticator<MicrosoftGraph
         GraphServiceClient.builder()
             .authenticationProvider(tokenCredentialAuthProvider)
             .buildClient();
-    if(configuration.getEnableDebugHttpLogging()){
+    if (configuration.getEnableDebugHttpLogging()) {
       authenticatedClient.getLogger().setLoggingLevel(LoggerLevel.DEBUG);
       try {
         ((CoreHttpProvider) authenticatedClient.getHttpProvider())
             .getLogger()
             .setLoggingLevel(LoggerLevel.DEBUG);
-      }catch (Exception  e ){}
+      } catch (Exception e) {
+      }
     }
 
     return "authenticated";

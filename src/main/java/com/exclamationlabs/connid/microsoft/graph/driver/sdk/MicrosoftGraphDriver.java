@@ -22,7 +22,6 @@ import com.exclamationlabs.connid.microsoft.graph.authenticator.MicrosoftGraphAu
 import com.exclamationlabs.connid.microsoft.graph.model.MicrosoftGraphGroup;
 import com.exclamationlabs.connid.microsoft.graph.model.MicrosoftGraphLicense;
 import com.exclamationlabs.connid.microsoft.graph.model.MicrosoftGraphUser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.graph.core.ClientException;
 import com.microsoft.graph.http.GraphServiceException;
@@ -40,9 +39,11 @@ public class MicrosoftGraphDriver extends BaseDriver<MicrosoftGraphConfiguration
   static final int SDK_FETCH_COUNT = 50;
   private MicrosoftGraphConfiguration configuration;
   private GraphServiceClient<Request> graphClient;
-public MicrosoftGraphConfiguration getConfiguration(){
-  return configuration;
-}
+
+  public MicrosoftGraphConfiguration getConfiguration() {
+    return configuration;
+  }
+
   public MicrosoftGraphDriver() {
     super();
     addInvocator(MicrosoftGraphUser.class, new MicrosoftGraphUsersInvocator());
@@ -106,21 +107,19 @@ public MicrosoftGraphConfiguration getConfiguration(){
                   + exception.getError().error.code
                   + ": "
                   + exception.getError().error.message;
-          if (exception.toString() != null
-              && configuration.getEnableDebugHttpLogging() ) {
-            throw new ConnectorException("Invalid Request: "+exception.toString(), exception);
+          if (exception.toString() != null && configuration.getEnableDebugHttpLogging()) {
+            throw new ConnectorException("Invalid Request: " + exception.toString(), exception);
           } else {
             throw new ConnectorException(ERROR_MESSAGE, exception);
           }
 
         } else {
-          if (exception.toString() != null
-              && configuration.getEnableDebugHttpLogging() ) {
-            throw new ConnectorException("Invalid Request to MS Graph Service"+exception.toString(), exception);
+          if (exception.toString() != null && configuration.getEnableDebugHttpLogging()) {
+            throw new ConnectorException(
+                "Invalid Request to MS Graph Service" + exception.toString(), exception);
           } else {
             throw new ConnectorException("Invalid Request to MS Graph Service", exception);
           }
-
         }
 
       case HttpStatus.SC_FORBIDDEN:
@@ -130,42 +129,46 @@ public MicrosoftGraphConfiguration getConfiguration(){
                   + exception.getError().error.code
                   + ": "
                   + exception.getError().error.message;
-          if (exception.toString() != null
-              && configuration.getEnableDebugHttpLogging() ) {
-            throw new ConnectorException("MS Graph Request forbidden: "+exception.toString(), exception);
+          if (exception.toString() != null && configuration.getEnableDebugHttpLogging()) {
+            throw new ConnectorException(
+                "MS Graph Request forbidden: " + exception.toString(), exception);
           } else {
             throw new ConnectorException(ERROR_MESSAGE, exception);
           }
         } else {
-          if (exception.toString() != null
-              && configuration.getEnableDebugHttpLogging() ) {
-            throw new ConnectorException("Unauthorized Request made to MS Graph Service: "+exception.toString(), exception);
+          if (exception.toString() != null && configuration.getEnableDebugHttpLogging()) {
+            throw new ConnectorException(
+                "Unauthorized Request made to MS Graph Service: " + exception.toString(),
+                exception);
           } else {
-            throw new ConnectorException("Unauthorized Request made to MS Graph Service", exception);
+            throw new ConnectorException(
+                "Unauthorized Request made to MS Graph Service", exception);
           }
-
         }
 
       case HttpStatus.SC_NOT_FOUND:
         break;
 
       default:
-        if (exception.toString() != null
-            && configuration.getEnableDebugHttpLogging() ) {
-          throw new ConnectorException("Unexpected GraphServiceException: "+ exception.toString(), exception);
+        if (exception.toString() != null && configuration.getEnableDebugHttpLogging()) {
+          throw new ConnectorException(
+              "Unexpected GraphServiceException: " + exception.toString(), exception);
         } else {
           throw new ConnectorException("Unexpected GraphServiceException", exception);
         }
     }
   }
-  public void logTransactionPayload(Class clazz,String method, Object data){
-  if(this.configuration.getEnableDebugHttpLogging()){
-    ObjectMapper mapper = new ObjectMapper();
-    try {
-      Logger.info(clazz,"Debug payload, Method: " + method + " data: "+ mapper.writeValueAsString(data));
-    } catch (Exception e) {
-      e.printStackTrace();
+
+  public void logTransactionPayload(Class clazz, String method, Object data) {
+    if (this.configuration.getEnableDebugHttpLogging()) {
+      ObjectMapper mapper = new ObjectMapper();
+      try {
+        Logger.info(
+            clazz,
+            "Debug payload, Method: " + method + " data: " + mapper.writeValueAsString(data));
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
-  }
   }
 }
