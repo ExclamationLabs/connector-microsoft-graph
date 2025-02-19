@@ -179,15 +179,13 @@ public class MicrosoftGraphUsersInvocator
             "Unexpected GraphServiceException occurred during user update:", gse);
       }
     }
-
   }
 
   @Override
   public void delete(MicrosoftGraphDriver driver, String id) throws ConnectorException {
     if (driver.getConfiguration().getEnableDebugHttpLogging()) {
       try {
-        driver.logTransactionPayload(
-            this, "delete", driver.getGraphClient().users().byId(id));
+        driver.logTransactionPayload(this, "delete", driver.getGraphClient().users().byId(id));
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -368,9 +366,7 @@ public class MicrosoftGraphUsersInvocator
     if (driver.getConfiguration().getEnableDebugHttpLogging()) {
       try {
         driver.logTransactionPayload(
-            this,
-            "post",
-            driver.getGraphClient().groups(groupId).members().references());
+            this, "post", driver.getGraphClient().groups(groupId).members().references());
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -408,9 +404,7 @@ public class MicrosoftGraphUsersInvocator
     if (driver.getConfiguration().getEnableDebugHttpLogging()) {
       try {
         driver.logTransactionPayload(
-            this,
-            "delete",
-            driver.getGraphClient().groups(groupId).members().references());
+            this, "delete", driver.getGraphClient().groups(groupId).members().references());
       } catch (Exception e) {
         e.printStackTrace();
       }

@@ -52,6 +52,15 @@ NOTE: This connector is a full replacement for Evolveum's [Microsoft Azure (Grap
 This connector will no longer work, because MS Azure AD Graph API has reached end-of-life, 
 currently deprecated and is to be retired June 30. 2023.
 
+This method does not create the employeeOrgData or passwordProfile objects to avoid the error
+"Unable to update the specified properties for on-premises mastered Directory Sync objects". If the customer creates accounts in AD and synchronizes those accounts with the cloud. If this is the case the customer should not manage these objects through the OP.
+The affected Attributes are:
+*  COST_CENTER
+*  DIVISION
+*  \_\_PASSWORD\_\_
+*  FORCE_CHANGE_PASSWORD_NEXT_SIGN_IN
+*  FORCE_CHANGE_PASSWORD_NEXT_SIGN_IN_WITH_MFA
+
 ## Configuration properties
 
 - See src/test/resources/__bcon__development__exclamation_labs__microsoft_graph.properties for an example

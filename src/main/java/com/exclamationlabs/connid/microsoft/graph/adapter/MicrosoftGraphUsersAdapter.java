@@ -129,19 +129,42 @@ public class MicrosoftGraphUsersAdapter
 
     return result;
   }
-private void logConstructModel(Set<Attribute> attributes){
-    if(this.configuration.getEnableDebugHttpLogging()) {
+
+  private void logConstructModel(Set<Attribute> attributes) {
+    if (this.configuration.getEnableDebugHttpLogging()) {
       for (Attribute attribute : attributes) {
         try {
-          Logger.error(this,
-              "Construct model for attribute " + attribute.getName() + " value: "
+          Logger.error(
+              this,
+              "Construct model for attribute "
+                  + attribute.getName()
+                  + " value: "
                   + attribute.getValue());
         } catch (Exception e) {
 
         }
       }
     }
-}
+  }
+
+  /**
+   * This method does not create the employeeOrgData or passwordProfile objects to avoid the error
+   * "Unable to update the specified properties for on-premises mastered Directory Sync objects". If
+   * the customer creates accounts in AD and synchronizes those accounts with the cloud. If this is
+   * the case the customer should not manage these objects through the OP. The affected Attributes
+   * are: COST_CENTER DIVISION __PASSWORD__ FORCE_CHANGE_PASSWORD_NEXT_SIGN_IN
+   * FORCE_CHANGE_PASSWORD_NEXT_SIGN_IN_WITH_MFA
+   *
+   * @param attributes Name/Value Attribute information received from Midpoint.
+   * @param multiValueAdded For updateDelta, this may contain multi-valued attributes that were just
+   *     added via Midpoint. Null for create, Empty set if none applicable found for UpdateDelta
+   * @param multiValueRemoved For updateDelta, this may contain multi-valued attributes that were
+   *     just removed via Midpoint. Null for create, Empty set if none applicable found for
+   *     UpdateDelta
+   * @param creation True if this invocation applies to new object creation, false if object update
+   *     is applicable.
+   * @return
+   */
   @Override
   protected MicrosoftGraphUser constructModel(
       Set<Attribute> attributes,
@@ -171,12 +194,10 @@ private void logConstructModel(Set<Attribute> attributes){
         AdapterValueTypeConverter.getSingleAttributeValue(
             String.class, attributes, USER_PRINCIPAL_NAME);
 
+    // MG: do not create password profile unless values exist
 
-
-//MG: do not create password profile unless values exist
-
-   var tempPasswordProfile = new PasswordProfile();
-   tempPasswordProfile.password =
+    var tempPasswordProfile = new PasswordProfile();
+    tempPasswordProfile.password =
         GuardedStringUtil.read(
             AdapterValueTypeConverter.getSingleAttributeValue(
                 GuardedString.class, attributes, __PASSWORD__));
@@ -187,10 +208,9 @@ private void logConstructModel(Set<Attribute> attributes){
     tempPasswordProfile.forceChangePasswordNextSignInWithMfa =
         AdapterValueTypeConverter.getSingleAttributeValue(
             Boolean.class, attributes, FORCE_CHANGE_PASSWORD_NEXT_SIGN_IN_WITH_MFA);
-    if(tempPasswordProfile.forceChangePasswordNextSignInWithMfa != null
-    || tempPasswordProfile.forceChangePasswordNextSignIn!=null
-    || tempPasswordProfile.password != null
-    ){
+    if (tempPasswordProfile.forceChangePasswordNextSignInWithMfa != null
+        || tempPasswordProfile.forceChangePasswordNextSignIn != null
+        || tempPasswordProfile.password != null) {
       if (creation && tempPasswordProfile.forceChangePasswordNextSignIn == null) {
         tempPasswordProfile.forceChangePasswordNextSignIn =
             configuration.getForceChangePasswordOnCreate();
@@ -227,13 +247,13 @@ private void logConstructModel(Set<Attribute> attributes){
     user.getGraphUser().employeeId =
         AdapterValueTypeConverter.getSingleAttributeValue(String.class, attributes, EMPLOYEE_ID);
 
-    //MG: do not create Employee Org data unless it exists
+    // MG: do not create Employee Org data unless it exists
     var tempEmployeeOrgData = new EmployeeOrgData();
     tempEmployeeOrgData.costCenter =
         AdapterValueTypeConverter.getSingleAttributeValue(String.class, attributes, COST_CENTER);
     tempEmployeeOrgData.division =
         AdapterValueTypeConverter.getSingleAttributeValue(String.class, attributes, DIVISION);
-    if(tempEmployeeOrgData.costCenter != null || tempEmployeeOrgData.division != null){
+    if (tempEmployeeOrgData.costCenter != null || tempEmployeeOrgData.division != null) {
       user.getGraphUser().employeeOrgData = tempEmployeeOrgData;
     }
 
