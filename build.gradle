@@ -115,7 +115,7 @@ task fatJar(type: Jar) {
 
     manifest {
         attributes("ConnectorBundle-FrameworkVersion": "1.4.3.11",
-                "ConnectorBundle-Version": versionNumber+"-rc.3",
+                "ConnectorBundle-Version": versionNumber,
                 "ConnectorBundle-Name": project.name)
     }
 }
