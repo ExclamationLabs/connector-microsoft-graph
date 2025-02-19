@@ -21,6 +21,7 @@ import static org.identityconnectors.framework.common.objects.AttributeInfo.Flag
 import com.exclamationlabs.connid.base.connector.adapter.AdapterValueTypeConverter;
 import com.exclamationlabs.connid.base.connector.adapter.BaseAdapter;
 import com.exclamationlabs.connid.base.connector.attribute.ConnectorAttribute;
+import com.exclamationlabs.connid.base.connector.logging.Logger;
 import com.exclamationlabs.connid.base.connector.util.GuardedStringUtil;
 import com.exclamationlabs.connid.base.microsoft.graph.configuration.MicrosoftGraphConfiguration;
 import com.exclamationlabs.connid.microsoft.graph.model.MicrosoftGraphUser;
@@ -128,16 +129,31 @@ public class MicrosoftGraphUsersAdapter
 
     return result;
   }
+private void logConstructModel(Set<Attribute> attributes){
+    if(this.configuration.getEnableDebugHttpLogging()) {
+      for (Attribute attribute : attributes) {
+        try {
+          Logger.error(this,
+              "Construct model for attribute " + attribute.getName() + " value: "
+                  + attribute.getValue());
+        } catch (Exception e) {
 
+        }
+      }
+    }
+}
   @Override
   protected MicrosoftGraphUser constructModel(
       Set<Attribute> attributes,
       Set<Attribute> multiValueAdded,
       Set<Attribute> multiValueRemoved,
       boolean creation) {
+    logConstructModel(attributes);
     MicrosoftGraphUser user = new MicrosoftGraphUser(new User());
+    /*MG: comment creating these new objects
     user.getGraphUser().employeeOrgData = new EmployeeOrgData();
     user.getGraphUser().passwordProfile = new PasswordProfile();
+    */
     user.getGraphUser().id = AdapterValueTypeConverter.getIdentityIdAttributeValue(attributes);
     user.getGraphUser().displayName =
         AdapterValueTypeConverter.getIdentityNameAttributeValue(attributes);
@@ -154,22 +170,33 @@ public class MicrosoftGraphUsersAdapter
     user.getGraphUser().userPrincipalName =
         AdapterValueTypeConverter.getSingleAttributeValue(
             String.class, attributes, USER_PRINCIPAL_NAME);
-    user.getGraphUser().passwordProfile = new PasswordProfile();
-    user.getGraphUser().passwordProfile.password =
+
+
+
+//MG: do not create password profile unless values exist
+
+   var tempPasswordProfile = new PasswordProfile();
+   tempPasswordProfile.password =
         GuardedStringUtil.read(
             AdapterValueTypeConverter.getSingleAttributeValue(
                 GuardedString.class, attributes, __PASSWORD__));
-    user.getGraphUser().passwordProfile.forceChangePasswordNextSignIn =
+    tempPasswordProfile.forceChangePasswordNextSignIn =
         AdapterValueTypeConverter.getSingleAttributeValue(
             Boolean.class, attributes, FORCE_CHANGE_PASSWORD_NEXT_SIGN_IN);
-    if (creation && user.getGraphUser().passwordProfile.forceChangePasswordNextSignIn == null) {
-      user.getGraphUser().passwordProfile.forceChangePasswordNextSignIn =
-          configuration.getForceChangePasswordOnCreate();
-    }
-    user.getGraphUser().passwordProfile.forceChangePasswordNextSignInWithMfa =
+
+    tempPasswordProfile.forceChangePasswordNextSignInWithMfa =
         AdapterValueTypeConverter.getSingleAttributeValue(
             Boolean.class, attributes, FORCE_CHANGE_PASSWORD_NEXT_SIGN_IN_WITH_MFA);
-
+    if(tempPasswordProfile.forceChangePasswordNextSignInWithMfa != null
+    || tempPasswordProfile.forceChangePasswordNextSignIn!=null
+    || tempPasswordProfile.password != null
+    ){
+      if (creation && tempPasswordProfile.forceChangePasswordNextSignIn == null) {
+        tempPasswordProfile.forceChangePasswordNextSignIn =
+            configuration.getForceChangePasswordOnCreate();
+      }
+      user.getGraphUser().passwordProfile = tempPasswordProfile;
+    }
     user.getGraphUser().accountEnabled =
         AdapterValueTypeConverter.getSingleAttributeValue(Boolean.class, attributes, __ENABLE__);
     user.getGraphUser().mailNickname =
@@ -199,10 +226,17 @@ public class MicrosoftGraphUsersAdapter
                 String.class, attributes, EMPLOYEE_HIRE_DATE));
     user.getGraphUser().employeeId =
         AdapterValueTypeConverter.getSingleAttributeValue(String.class, attributes, EMPLOYEE_ID);
-    user.getGraphUser().employeeOrgData.costCenter =
+
+    //MG: do not create Employee Org data unless it exists
+    var tempEmployeeOrgData = new EmployeeOrgData();
+    tempEmployeeOrgData.costCenter =
         AdapterValueTypeConverter.getSingleAttributeValue(String.class, attributes, COST_CENTER);
-    user.getGraphUser().employeeOrgData.division =
+    tempEmployeeOrgData.division =
         AdapterValueTypeConverter.getSingleAttributeValue(String.class, attributes, DIVISION);
+    if(tempEmployeeOrgData.costCenter != null || tempEmployeeOrgData.division != null){
+      user.getGraphUser().employeeOrgData = tempEmployeeOrgData;
+    }
+
     user.getGraphUser().employeeType =
         AdapterValueTypeConverter.getSingleAttributeValue(String.class, attributes, EMPLOYEE_TYPE);
     user.getGraphUser().externalUserState =

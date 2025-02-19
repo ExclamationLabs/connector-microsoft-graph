@@ -117,7 +117,7 @@ public class MicrosoftGraphUsersInvocator
       throws ConnectorException {
     if (driver.getConfiguration().getEnableDebugHttpLogging()) {
       try {
-        driver.logTransactionPayload(this.getClass(), "post", newUser.getGraphUser());
+        driver.logTransactionPayload(this, "post", newUser.getGraphUser());
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -151,7 +151,7 @@ public class MicrosoftGraphUsersInvocator
       throws ConnectorException {
     if (driver.getConfiguration().getEnableDebugHttpLogging()) {
       try {
-        driver.logTransactionPayload(this.getClass(), "patch", modifiedUser.getGraphUser());
+        driver.logTransactionPayload(this, "patch", modifiedUser.getGraphUser());
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -162,7 +162,6 @@ public class MicrosoftGraphUsersInvocator
               String.format("MSGraph user byId %s produced null result", id))
           .buildRequest()
           .patch(modifiedUser.getGraphUser());
-
       modifiedUser.getGroupIdsToAdd().forEach(groupId -> addGroupToUser(groupId, id, driver));
       modifiedUser
           .getGroupIdsToRemove()
@@ -180,7 +179,7 @@ public class MicrosoftGraphUsersInvocator
             "Unexpected GraphServiceException occurred during user update:", gse);
       }
     }
-    System.out.println("Test");
+
   }
 
   @Override
@@ -188,7 +187,7 @@ public class MicrosoftGraphUsersInvocator
     if (driver.getConfiguration().getEnableDebugHttpLogging()) {
       try {
         driver.logTransactionPayload(
-            this.getClass(), "delete", driver.getGraphClient().users().byId(id));
+            this, "delete", driver.getGraphClient().users().byId(id));
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -369,7 +368,7 @@ public class MicrosoftGraphUsersInvocator
     if (driver.getConfiguration().getEnableDebugHttpLogging()) {
       try {
         driver.logTransactionPayload(
-            this.getClass(),
+            this,
             "post",
             driver.getGraphClient().groups(groupId).members().references());
       } catch (Exception e) {
@@ -409,7 +408,7 @@ public class MicrosoftGraphUsersInvocator
     if (driver.getConfiguration().getEnableDebugHttpLogging()) {
       try {
         driver.logTransactionPayload(
-            this.getClass(),
+            this,
             "delete",
             driver.getGraphClient().groups(groupId).members().references());
       } catch (Exception e) {

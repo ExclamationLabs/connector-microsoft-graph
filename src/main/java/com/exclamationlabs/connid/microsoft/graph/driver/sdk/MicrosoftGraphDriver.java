@@ -159,7 +159,7 @@ public class MicrosoftGraphDriver extends BaseDriver<MicrosoftGraphConfiguration
     }
   }
 
-  public void logTransactionPayload(Class clazz, String method, Object data) {
+  public void logTransactionPayload(Object clazz, String method, Object data) {
     if (this.configuration.getEnableDebugHttpLogging()) {
       ObjectMapper mapper = new ObjectMapper();
       try {

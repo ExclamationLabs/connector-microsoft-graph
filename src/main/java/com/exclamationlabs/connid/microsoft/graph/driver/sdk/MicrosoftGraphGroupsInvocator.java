@@ -89,7 +89,7 @@ public class MicrosoftGraphGroupsInvocator
       throws ConnectorException {
     if (driver.getConfiguration().getEnableDebugHttpLogging()) {
       try {
-        driver.logTransactionPayload(this.getClass(), "post", newGroup.getGraphGroup());
+        driver.logTransactionPayload(this, "post", newGroup.getGraphGroup());
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -115,7 +115,7 @@ public class MicrosoftGraphGroupsInvocator
       throws ConnectorException {
     if (driver.getConfiguration().getEnableDebugHttpLogging()) {
       try {
-        driver.logTransactionPayload(this.getClass(), "patch", modifiedGroup.getGraphGroup());
+        driver.logTransactionPayload(this, "patch", modifiedGroup.getGraphGroup());
       } catch (Exception e) {
         e.printStackTrace();
       }
