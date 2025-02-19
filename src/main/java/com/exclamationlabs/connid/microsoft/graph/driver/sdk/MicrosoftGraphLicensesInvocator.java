@@ -14,6 +14,7 @@
 package com.exclamationlabs.connid.microsoft.graph.driver.sdk;
 
 import com.exclamationlabs.connid.base.connector.driver.DriverInvocator;
+import com.exclamationlabs.connid.base.connector.logging.Logger;
 import com.exclamationlabs.connid.base.connector.results.ResultsFilter;
 import com.exclamationlabs.connid.base.connector.results.ResultsPaginator;
 import com.exclamationlabs.connid.microsoft.graph.model.MicrosoftGraphLicense;
@@ -61,6 +62,9 @@ public class MicrosoftGraphLicensesInvocator
       List<SubscribedSku> licenses = page.getCurrentPage();
       licenses.forEach(it -> response.add(new MicrosoftGraphLicense(it)));
     } catch (GraphServiceException gse) {
+      if (gse.toString() != null && driver.getConfiguration().getEnableDebugHttpLogging()) {
+        Logger.error(this, String.format("Exception in license.getAll %s", gse.toString()), gse);
+      }
       driver.handleGraphServiceException(gse);
     }
     return response;
@@ -78,6 +82,9 @@ public class MicrosoftGraphLicensesInvocator
               .get();
       return new MicrosoftGraphLicense(matchingLicense);
     } catch (GraphServiceException gse) {
+      if (gse.toString() != null && driver.getConfiguration().getEnableDebugHttpLogging()) {
+        Logger.error(this, String.format("Exception in license.getOne %s", gse.toString()), gse);
+      }
       driver.handleGraphServiceException(gse);
     }
     return null;

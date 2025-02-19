@@ -14,6 +14,11 @@ custom:
         type: string
         display: 'Azure Tenant Id'
         help: 'Identifier for Azure AD Tenant'
+      enableDebugHttpLogging:
+        type: boolean
+        display: 'Debug logging details'
+        help: 'This option will expand logs to show more details'
+        default: 'false'
     optional:
       forceChangePasswordOnCreate:
         type: boolean

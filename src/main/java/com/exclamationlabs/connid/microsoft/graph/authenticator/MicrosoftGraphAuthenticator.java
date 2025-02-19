@@ -23,6 +23,8 @@ import com.exclamationlabs.connid.base.connector.configuration.TrustStoreConfigu
 import com.exclamationlabs.connid.base.connector.util.GuardedStringUtil;
 import com.exclamationlabs.connid.base.microsoft.graph.configuration.MicrosoftGraphConfiguration;
 import com.microsoft.graph.authentication.TokenCredentialAuthProvider;
+import com.microsoft.graph.http.CoreHttpProvider;
+import com.microsoft.graph.logger.LoggerLevel;
 import com.microsoft.graph.requests.GraphServiceClient;
 import java.util.Collections;
 import okhttp3.Request;
@@ -51,6 +53,15 @@ public class MicrosoftGraphAuthenticator implements Authenticator<MicrosoftGraph
         GraphServiceClient.builder()
             .authenticationProvider(tokenCredentialAuthProvider)
             .buildClient();
+    if (configuration.getEnableDebugHttpLogging()) {
+      authenticatedClient.getLogger().setLoggingLevel(LoggerLevel.DEBUG);
+      try {
+        ((CoreHttpProvider) authenticatedClient.getHttpProvider())
+            .getLogger()
+            .setLoggingLevel(LoggerLevel.DEBUG);
+      } catch (Exception e) {
+      }
+    }
 
     return "authenticated";
   }
