@@ -22,6 +22,8 @@ public class MicrosoftGraphUser implements IdentityModel {
 
   private User graphUser;
 
+  private Set<String> memberOf;
+
   private Set<String> licenseIdsToAdd;
   private Set<String> licenseIdsToRemove;
 
@@ -52,6 +54,14 @@ public class MicrosoftGraphUser implements IdentityModel {
 
   public void setGraphUser(User graphUser) {
     this.graphUser = graphUser;
+  }
+
+  public Set<String> getMemberOf() {
+    return memberOf;
+  }
+
+  public void setMemberOf(Set<String> memberOf) {
+    this.memberOf = memberOf;
   }
 
   public Set<String> getLicenseIdsToAdd() {

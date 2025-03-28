@@ -533,16 +533,7 @@ public class MicrosoftGraphUsersAdapter
     }
 
     // read assigned groups
-    if (user.getGraphUser().memberOf != null
-        && (!user.getGraphUser().memberOf.getCurrentPage().isEmpty())) {
-      List<String> groups = new ArrayList<>();
-      for (DirectoryObject current : user.getGraphUser().memberOf.getCurrentPage()) {
-        if (current instanceof Group) {
-          groups.add(current.id);
-        }
-      }
-      attributes.add(AttributeBuilder.build(ASSIGNED_GROUPS.name(), groups));
-    }
+    attributes.add(AttributeBuilder.build(ASSIGNED_GROUPS.name(), user.getMemberOf()));
 
     return attributes;
   }
