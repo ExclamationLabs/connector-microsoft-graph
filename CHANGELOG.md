@@ -1,6 +1,7 @@
 # connector-microsoft-graph
 
 ## Change Log
+
 + **2.0.2** - Remove Group Member Limit of 20, add more getOne attributes (03/28/2025)
 + **2.0.1** - Add DynamicMembership attribute Add debug logging options and do not create employeeOrgData or passwordProfile if the values are null. (02/19/2025)
 + **2.0.0** - FIN-12675 - Entitlement Deletion removal (11/22/2024)

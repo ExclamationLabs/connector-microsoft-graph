@@ -58,14 +58,17 @@ dependencies {
     implementation 'com.microsoft.graph:microsoft-graph:5.80.0'
 
     // Needed for TokenCredentialAuthProvider
-    implementation 'com.azure:azure-identity:1.15.0'
+
+    implementation 'com.azure:azure-identity:1.15.3'
 
     // Vulnerability updates
     implementation 'io.netty:netty-codec-http:4.1.108.Final'
-    implementation 'io.netty:netty-codec-http2:4.1.108.Final'
+    implementation 'io.netty:netty-codec-http2:4.1.118.Final'
+    implementation 'io.netty:netty-handler:4.1.118.Final'
     implementation 'com.squareup.okio:okio:3.4.0'
     implementation 'com.google.guava:guava:33.1.0-jre'
     implementation 'org.springframework:spring-expression:5.3.39'
+    implementation 'net.minidev:json-smart:2.5.2'
 
     // HTTP/RESTful support
     implementation 'com.google.code.gson:gson:2.10.1'
