@@ -21,10 +21,10 @@ import com.exclamationlabs.connid.microsoft.graph.attribute.MicrosoftGraphUserAt
 import com.exclamationlabs.connid.microsoft.graph.model.MicrosoftGraphUser;
 import com.microsoft.graph.http.GraphServiceException;
 import com.microsoft.graph.models.*;
-import com.microsoft.graph.requests.UserCollectionPage;
-import com.microsoft.graph.requests.UserCollectionRequestBuilder;
+import com.microsoft.graph.requests.*;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Name;
 
@@ -67,6 +67,9 @@ public class MicrosoftGraphUsersInvocator
                 "mail",
                 "mailNickname",
                 "officeLocation",
+                "onPremisesSamAccountName",
+                "onPremisesDistinguishedName",
+                "onPremisesUserPrincipalName",
                 "preferredLanguage",
                 "surname",
                 "userPrincipalName",
@@ -89,14 +92,11 @@ public class MicrosoftGraphUsersInvocator
             "imAddresses",
             "lastPasswordChangeDateTime",
             "licenseAssignmentStates",
-            "onPremisesDistinguishedName",
             "onPremisesDomainName",
             "onPremisesImmutableId",
             "onPremisesLastSyncDateTime",
-            "onPremisesSamAccountName",
             "onPremisesSecurityIdentifier",
             "onPremisesSyncEnabled",
-            "onPremisesUserPrincipalName",
             "otherMails",
             "passwordPolicies",
             "postalCode",
@@ -230,7 +230,7 @@ public class MicrosoftGraphUsersInvocator
                 .getGraphClient()
                 .users()
                 .buildRequest()
-                .select(String.join(",", summaryFields))
+                .select(String.join(",", detailFields))
                 .filter(modelFieldName + " eq '" + resultsFilter.getValue() + "'")
                 .get();
         usersList = usersPage.getCurrentPage();
@@ -279,9 +279,29 @@ public class MicrosoftGraphUsersInvocator
                   String.format("MSGraph user byId %s produced null result", id))
               .buildRequest()
               .select(String.join(",", detailFields))
-              .expand("memberOf")
               .get();
-      return new MicrosoftGraphUser(matchingUser);
+      GroupCollectionPage memberPage =
+          Objects.requireNonNull(
+                  driver.getGraphClient().users().byId(id).memberOfAsGroup(),
+                  String.format("MSGraph user byId %s produced null result", id))
+              .buildRequest()
+              .get();
+      Set<String> groupList = new HashSet<>();
+      while (memberPage != null) {
+        groupList.addAll(
+            memberPage.getCurrentPage().stream()
+                .map(group -> group.id)
+                .collect(Collectors.toList()));
+        final GroupCollectionRequestBuilder nextPage = memberPage.getNextPage();
+        if (nextPage == null) {
+          break;
+        } else {
+          memberPage = nextPage.buildRequest().get();
+        }
+      }
+      MicrosoftGraphUser microsoftGraphUser = new MicrosoftGraphUser(matchingUser);
+      microsoftGraphUser.setMemberOf(groupList);
+      return microsoftGraphUser;
     } catch (GraphServiceException gse) {
       if (gse.toString() != null && driver.getConfiguration().getEnableDebugHttpLogging()) {
         Logger.error(this, String.format("Exception in user.getOne %s", gse.toString()), gse);

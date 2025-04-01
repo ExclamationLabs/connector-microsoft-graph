@@ -276,7 +276,8 @@ public class MicrosoftGraphGroupsAdapter
                 .anyMatch(s -> s.equalsIgnoreCase("Unified"))
             && group.getGraphGroup().groupTypes.stream()
                 .noneMatch(s -> s.equalsIgnoreCase("DynamicMembership"))
-            && BooleanUtils.isTrue(group.getGraphGroup().mailEnabled);
+            && BooleanUtils.isTrue(group.getGraphGroup().mailEnabled)
+            && !group.getMsTeam();
     attributes.add(AttributeBuilder.build(IS_MS_365.name(), is365Group));
     boolean isDynamicMembershipGroup =
         group.getGraphGroup().groupTypes != null
