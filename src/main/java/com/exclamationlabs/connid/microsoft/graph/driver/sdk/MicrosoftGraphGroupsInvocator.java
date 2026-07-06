@@ -239,28 +239,44 @@ public class MicrosoftGraphGroupsInvocator
     return groupGet.orElse(null);
   }
 
+  protected long[] getRetryDelaysMs() {
+    return new long[] {5000L, 10000L, 30000L};
+  }
+
   protected Boolean checkMsTeamType(MicrosoftGraphDriver driver, String groupId) {
-    // Check MS Team info for group
-    try {
-      Team teamInfo =
-          Objects.requireNonNull(driver.getGraphClient().teams().byId(groupId))
-              .buildRequest()
-              .get();
-      return (teamInfo != null);
-    } catch (GraphServiceException gse) {
-      if (gse.getResponseCode() == 404) {
-        return false;
-      } else {
-        driver.handleGraphServiceException(gse);
-        if (gse.toString() != null && driver.getConfiguration().getEnableDebugHttpLogging()) {
-          throw new ConnectorException(
-              "Unexpected GraphServiceException occurred during checkMsTeamType:" + gse.toString(),
-              gse);
+    long[] retryDelaysMs = getRetryDelaysMs();
+    int maxAttempts = retryDelaysMs.length + 1;
+    for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        Team teamInfo =
+            Objects.requireNonNull(driver.getGraphClient().teams().byId(groupId))
+                .buildRequest()
+                .get();
+        return (teamInfo != null);
+      } catch (GraphServiceException gse) {
+        if (gse.getResponseCode() == 404) {
+          return false;
+        } else if (gse.getResponseCode() == 500 && attempt < maxAttempts) {
+          try {
+            Thread.sleep(retryDelaysMs[attempt - 1]);
+          } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+          }
         } else {
-          throw new ConnectorException(
-              "Unexpected GraphServiceException occurred during checkMsTeamType:", gse);
+          driver.handleGraphServiceException(gse);
+          if (gse.toString() != null && driver.getConfiguration().getEnableDebugHttpLogging()) {
+            throw new ConnectorException(
+                "Unexpected GraphServiceException occurred during checkMsTeamType:"
+                    + gse.toString(),
+                gse);
+          } else {
+            throw new ConnectorException(
+                "Unexpected GraphServiceException occurred during checkMsTeamType:", gse);
+          }
         }
       }
     }
+    throw new ConnectorException(
+        "checkMsTeamType failed after " + maxAttempts + " attempts due to repeated 500 errors");
   }
 }

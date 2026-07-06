@@ -41,12 +41,13 @@ apply plugin: 'com.exclamationlabs.connid.base.config.plugin'
 sourceCompatibility = '1.11'
 targetCompatibility = '1.11'
 
+def rc_version = System.getenv('RELEASE_CANDIDATE') == null || System.getenv('RELEASE_CANDIDATE') == "" ? "" : "-rc.${System.getenv('RELEASE_CANDIDATE')}"
 def build_version = System.getenv('BUILD_NUMBER') == null ? System.currentTimeMillis() : System.getenv('BUILD_NUMBER')
-project.version="${project_version}-${build_version}"
+project.version="${project_version}${rc_version}+${build_version}"
+
+def versionNumber = "${project_version}${rc_version}"
 
 group = 'com.exclamationlabs.connid'
-
-def versionNumber = "${project_version}"
 
 dependencies {
     // Required for MidPoint runtime
