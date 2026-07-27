@@ -61,7 +61,11 @@ public class MicrosoftGraphUsersAdapter
     result.add(
         new ConnectorAttribute(CREATED_DATETIME.name(), STRING, NOT_CREATABLE, NOT_UPDATEABLE));
     result.add(new ConnectorAttribute(CREATION_TYPE.name(), STRING));
-    result.add(new ConnectorAttribute(Name.NAME, DISPLAY_NAME.name(), STRING));
+    // __NAME__ maps to USER_PRINCIPAL_NAME (tenant-unique in Entra), not DISPLAY_NAME.
+    // DISPLAY_NAME is not unique in Entra (two real people can share a name), which caused
+    // ObjectAlreadyExistsException on name collisions. See MicrosoftGraphUserAttribute.
+    result.add(new ConnectorAttribute(Name.NAME, USER_PRINCIPAL_NAME.name(), STRING));
+    result.add(new ConnectorAttribute(DISPLAY_NAME.name(), STRING));
     result.add(new ConnectorAttribute(EMPLOYEE_HIRE_DATE.name(), STRING));
     result.add(new ConnectorAttribute(EMPLOYEE_ID.name(), STRING));
     result.add(new ConnectorAttribute(COST_CENTER.name(), STRING));
@@ -106,7 +110,7 @@ public class MicrosoftGraphUsersAdapter
     result.add(new ConnectorAttribute(STREET_ADDRESS.name(), STRING));
     result.add(new ConnectorAttribute(SURNAME.name(), STRING));
     result.add(new ConnectorAttribute(USAGE_LOCATION.name(), STRING));
-    result.add(new ConnectorAttribute(USER_PRINCIPAL_NAME.name(), STRING));
+    // USER_PRINCIPAL_NAME is declared above as the __NAME__ attribute.
     result.add(new ConnectorAttribute(USER_TYPE.name(), STRING));
 
     result.add(new ConnectorAttribute(HIRE_DATE.name(), STRING));
@@ -178,8 +182,11 @@ public class MicrosoftGraphUsersAdapter
     user.getGraphUser().passwordProfile = new PasswordProfile();
     */
     user.getGraphUser().id = AdapterValueTypeConverter.getIdentityIdAttributeValue(attributes);
-    user.getGraphUser().displayName =
+    // __NAME__ now carries USER_PRINCIPAL_NAME; DISPLAY_NAME is a plain attribute.
+    user.getGraphUser().userPrincipalName =
         AdapterValueTypeConverter.getIdentityNameAttributeValue(attributes);
+    user.getGraphUser().displayName =
+        AdapterValueTypeConverter.getSingleAttributeValue(String.class, attributes, DISPLAY_NAME);
     user.getGraphUser().givenName =
         AdapterValueTypeConverter.getSingleAttributeValue(String.class, attributes, GIVEN_NAME);
     user.getGraphUser().surname =
@@ -190,9 +197,7 @@ public class MicrosoftGraphUsersAdapter
     user.getGraphUser().preferredLanguage =
         AdapterValueTypeConverter.getSingleAttributeValue(
             String.class, attributes, PREFERRED_LANGUAGE);
-    user.getGraphUser().userPrincipalName =
-        AdapterValueTypeConverter.getSingleAttributeValue(
-            String.class, attributes, USER_PRINCIPAL_NAME);
+    // userPrincipalName is populated from the __NAME__ attribute above.
 
     // MG: do not create password profile unless values exist
 
@@ -387,6 +392,8 @@ public class MicrosoftGraphUsersAdapter
     attributes.add(
         AttributeBuilder.build(
             OperationalAttributes.ENABLE_NAME, user.getGraphUser().accountEnabled));
+    // DISPLAY_NAME is now a plain attribute (no longer __NAME__, which is USER_PRINCIPAL_NAME).
+    attributes.add(AttributeBuilder.build(DISPLAY_NAME.name(), user.getGraphUser().displayName));
     attributes.add(AttributeBuilder.build(GIVEN_NAME.name(), user.getGraphUser().givenName));
     attributes.add(AttributeBuilder.build(SURNAME.name(), user.getGraphUser().surname));
     attributes.add(AttributeBuilder.build(EMAIL.name(), user.getGraphUser().mail));

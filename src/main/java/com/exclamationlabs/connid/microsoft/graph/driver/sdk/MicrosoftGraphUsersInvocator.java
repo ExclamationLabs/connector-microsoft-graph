@@ -39,10 +39,13 @@ public class MicrosoftGraphUsersInvocator
 
   static {
     filterAttributeToFieldMap = new HashMap<>();
-    filterAttributeToFieldMap.put(Name.NAME, "displayName");
+    // __NAME__ maps to userPrincipalName (see MicrosoftGraphUsersAdapter), so filtering by
+    // __NAME__ must query userPrincipalName in Graph, not displayName.
+    filterAttributeToFieldMap.put(Name.NAME, "userPrincipalName");
     filterAttributeToFieldMap.put(MicrosoftGraphUserAttribute.DISPLAY_NAME.name(), "displayName");
     filterAttributeToFieldMap.put(MicrosoftGraphUserAttribute.EMAIL.name(), "mail");
-    filterAttributeToFieldMap.put(MicrosoftGraphUserAttribute.USER_PRINCIPAL_NAME.name(), "mail");
+    filterAttributeToFieldMap.put(
+        MicrosoftGraphUserAttribute.USER_PRINCIPAL_NAME.name(), "userPrincipalName");
     filterAttributeToFieldMap.put(MicrosoftGraphUserAttribute.USER_TYPE.name(), "userType");
     filterAttributeToFieldMap.put(MicrosoftGraphUserAttribute.GIVEN_NAME.name(), "givenName");
     filterAttributeToFieldMap.put(MicrosoftGraphUserAttribute.SURNAME.name(), "surname");
