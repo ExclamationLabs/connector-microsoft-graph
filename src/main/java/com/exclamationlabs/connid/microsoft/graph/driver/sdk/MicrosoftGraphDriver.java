@@ -101,6 +101,17 @@ public class MicrosoftGraphDriver extends BaseDriver<MicrosoftGraphConfiguration
             throw new AlreadyExistsException(
                 "User with this account identification already exists", exception);
           }
+          // A userPrincipalName collision must surface as AlreadyExistsException, not a generic
+          // ConnectorException: UPN is the user naming attribute (__NAME__) as of 3.0.0, so this
+          // is the collision midPoint's uniqueness iterator needs to recognize in order to retry
+          // with a new name. Graph reports it as:
+          //   "Another object with the same value for property userPrincipalName already exists."
+          if (StringUtils.containsIgnoreCase(
+              exception.getError().error.message,
+              "same value for property userPrincipalName already exists")) {
+            throw new AlreadyExistsException(
+                "User with this userPrincipalName already exists", exception);
+          }
 
           final String ERROR_MESSAGE =
               "Invalid Request: "
