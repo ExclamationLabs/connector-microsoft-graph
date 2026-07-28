@@ -54,6 +54,12 @@ public class MicrosoftGraphIdentifierWriteIT
   /** UPN under the tenant-verified provisioniam.com domain, tagged as disposable. */
   private static final String TEST_UPN = THROWAWAY_TAG + "-dchoiniere@provisioniam.com";
 
+  /**
+   * UPN that test170 renames the account to. Keeps the {@link #THROWAWAY_TAG} marker so the cleanup
+   * hook still recognises the account after the rename.
+   */
+  private static final String RENAMED_UPN = THROWAWAY_TAG + "-dchoiniere-renamed@provisioniam.com";
+
   private static final String TEST_DISPLAY_NAME = "Dan Choiniere (connector write IT)";
   private static final String TEST_GIVEN_NAME = "Dan";
   private static final String TEST_SURNAME = "Choiniere";
@@ -83,6 +89,12 @@ public class MicrosoftGraphIdentifierWriteIT
 
   /** UID of the account created by test110, used by later tests and by the cleanup hook. */
   private static String createdUid;
+
+  /**
+   * The account's current UPN. Starts as {@link #TEST_UPN} and is updated by test170, which renames
+   * it — so the delete test must assert against this rather than the original constant.
+   */
+  private static String currentUpn = TEST_UPN;
 
   /** Set once the account is confirmed deleted, so the cleanup hook does not double-delete. */
   private static boolean deleted;
@@ -135,9 +147,29 @@ public class MicrosoftGraphIdentifierWriteIT
     // Guard against colliding with a real account (e.g. the operator's own dchoiniere@ mailbox).
     // A listing is used rather than a $filter because the connector's filtered read path trips a
     // pre-existing SharePoint/detailFields defect; see MicrosoftGraphIdentifierReadOnlyIT.test040.
-    assertTrue(
-        findByUpnInListing(TEST_UPN).isEmpty(),
-        "target UPN " + TEST_UPN + " already exists; aborting so no real account is touched");
+    // One listing covers every UPN this class touches. Debris from a previously failed run would
+    // otherwise make later tests fail for the wrong reason — e.g. test170's "old UPN no longer
+    // resolves" assertion, or test160's create.
+    results = new ArrayList<>();
+    getConnectorFacade()
+        .search(new ObjectClass("user"), null, handler, new OperationOptionsBuilder().build());
+    Set<String> existingUpns = new HashSet<>();
+    for (ConnectorObject user : results) {
+      String upn = single(user, Name.NAME);
+      if (upn != null) {
+        existingUpns.add(upn.toLowerCase(Locale.ROOT));
+      }
+    }
+    for (String upn :
+        Arrays.asList(
+            TEST_UPN,
+            RENAMED_UPN,
+            DIVERGENT_UPN,
+            THROWAWAY_TAG + "-dchoiniere2@provisioniam.com")) {
+      assertFalse(
+          existingUpns.contains(upn.toLowerCase(Locale.ROOT)),
+          "throwaway UPN " + upn + " already exists; remove it before running so no real account is touched");
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -382,6 +414,91 @@ public class MicrosoftGraphIdentifierWriteIT
   }
 
   // ---------------------------------------------------------------------------
+  // Renaming __NAME__ itself — the path midPoint's uniqueness iterator drives
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Renames {@code __NAME__} on an existing account, i.e. changes its {@code userPrincipalName}.
+   *
+   * <p>This is the update path the 3.0.0 change exists to enable: when midPoint hits a naming
+   * collision it retries with a modified name, which now means issuing a UPN change rather than a
+   * displayName change. {@code constructModel()} is shared between create and update and sources
+   * {@code userPrincipalName} from {@code __NAME__} unconditionally, so a {@code __NAME__} delta has
+   * to reach Graph as a UPN patch.
+   *
+   * <p>Also checks the fields a UPN rename can plausibly disturb in Entra — {@code mailNickname} and
+   * {@code displayName} — and confirms the account is still addressable by its stable {@code __UID__}
+   * afterwards, which is what keeps midPoint shadows from orphaning.
+   */
+  @Test
+  @Order(170)
+  public void test170RenameUpnViaNameAttribute() {
+    assumeCreated();
+    requireFilteredReadsWork();
+
+    // Capture pre-rename state so the assertions can prove what did and did not move.
+    ConnectorObject before =
+        getConnectorFacade()
+            .getObject(
+                new ObjectClass("user"), new Uid(createdUid), new OperationOptionsBuilder().build());
+    assertNotNull(before, "could not read the account before renaming");
+    final String displayNameBefore = single(before, DISPLAY_NAME.name());
+    final String mailNicknameBefore = single(before, EMAIL_NICKNAME.name());
+    assertEquals(TEST_UPN, single(before, Name.NAME), "unexpected UPN before rename");
+
+    final String renamedUpn = RENAMED_UPN;
+
+    Set<AttributeDelta> deltas = new HashSet<>();
+    deltas.add(
+        new AttributeDeltaBuilder().setName(Name.NAME).addValueToReplace(renamedUpn).build());
+
+    Set<AttributeDelta> response =
+        getConnectorFacade()
+            .updateDelta(
+                new ObjectClass("user"),
+                new Uid(createdUid),
+                deltas,
+                new OperationOptionsBuilder().build());
+    assertNotNull(response);
+    assertTrue(response.isEmpty(), "updateDelta reported unexpected side effects: " + response);
+
+    // The rename must be visible on read, addressed by the UNCHANGED uid.
+    ConnectorObject after =
+        awaitUser(
+            createdUid,
+            u -> renamedUpn.equalsIgnoreCase(single(u, Name.NAME)),
+            "UPN rename to '" + renamedUpn + "' to become visible");
+    assertEquals(
+        renamedUpn, single(after, Name.NAME), "__NAME__ did not change to the new userPrincipalName");
+    assertEquals(
+        createdUid,
+        single(after, Uid.NAME),
+        "__UID__ must be stable across a rename — midPoint shadows depend on it");
+
+    // A UPN rename must not silently drag other fields with it.
+    assertEquals(
+        displayNameBefore,
+        single(after, DISPLAY_NAME.name()),
+        "renaming the UPN must not change DISPLAY_NAME");
+    assertEquals(
+        mailNicknameBefore,
+        single(after, EMAIL_NICKNAME.name()),
+        "renaming the UPN must not change EMAIL_NICKNAME/mailNickname");
+
+    // The account must be findable by its NEW name and no longer by the old one — this is what
+    // midPoint relies on after an iterator retry.
+    List<ConnectorObject> byNewName =
+        awaitSearch(Name.NAME, renamedUpn, 1, "the renamed UPN to become searchable");
+    assertEquals(createdUid, single(byNewName.get(0), Uid.NAME));
+    assertTrue(
+        searchUsersBy(Name.NAME, TEST_UPN).isEmpty(),
+        "the old UPN '" + TEST_UPN + "' still resolves after the rename");
+
+    // Point the shared state at the new UPN so the delete test and cleanup hook stay correct.
+    currentUpn = renamedUpn;
+  }
+
+  // ---------------------------------------------------------------------------
   // Divergent mail vs UPN — closes the one gap the tenant's data could not cover
   // ---------------------------------------------------------------------------
 
@@ -521,12 +638,14 @@ public class MicrosoftGraphIdentifierWriteIT
 
     // Confirm it is gone, so the tenant is verifiably back to its prior state. Deletes propagate
     // to read replicas with the same lag as any other write, so poll instead of asserting once.
+    // Check currentUpn, not TEST_UPN: test170 renames the account, and the old UPN would be absent
+    // regardless of whether the delete worked.
     boolean gone = false;
     for (int attempt = 0; attempt < REPLICATION_ATTEMPTS && !gone; attempt++) {
       if (attempt > 0) {
         pause();
       }
-      gone = findByUpnInListing(TEST_UPN).isEmpty();
+      gone = findByUpnInListing(currentUpn).isEmpty();
     }
     assertTrue(gone, "user still present in the tenant after delete and replication wait");
   }
