@@ -255,57 +255,74 @@ public class MicrosoftGraphUsersInvocator
       throws ConnectorException {
     List<User> usersList = new ArrayList<>();
     Set<MicrosoftGraphUser> response = new HashSet<>();
-    UserCollectionPage usersPage;
     try {
 
       String modelFieldName =
           resultsFilter.hasFilter()
               ? filterAttributeToFieldMap.get(resultsFilter.getAttribute())
               : null;
+      UserCollectionRequest request =
+          driver
+              .getGraphClient()
+              .users()
+              .buildRequest()
+              // filterableDetailFields, not detailFields: selecting a SharePoint-backed field
+              // alongside a $filter makes Graph reject the request.
+              .select(
+                  String.join(",", modelFieldName != null ? filterableDetailFields : summaryFields))
+              .top(MicrosoftGraphDriver.SDK_FETCH_COUNT);
       if (modelFieldName != null) {
-        usersPage =
-            driver
-                .getGraphClient()
-                .users()
-                .buildRequest()
-                // filterableDetailFields, not detailFields: selecting a SharePoint-backed field
-                // alongside a $filter makes Graph reject the request.
-                .select(String.join(",", filterableDetailFields))
-                .filter(modelFieldName + " eq '" + resultsFilter.getValue() + "'")
-                .get();
-        usersList = usersPage.getCurrentPage();
-      } else {
-        usersPage =
-            driver
-                .getGraphClient()
-                .users()
-                .buildRequest()
-                .select(String.join(",", summaryFields))
-                .top(MicrosoftGraphDriver.SDK_FETCH_COUNT)
-                .get();
-        while (usersPage != null) {
-          usersList.addAll(usersPage.getCurrentPage());
-
-          final UserCollectionRequestBuilder nextPage = usersPage.getNextPage();
-          if (nextPage == null) {
-            break;
-          } else {
-            usersPage = nextPage.buildRequest().get();
-          }
-        }
+        request = request.filter(modelFieldName + " eq '" + resultsFilter.getValue() + "'");
       }
 
+      UserCollectionPage usersPage = request.get();
       if (usersPage == null) {
         throw new ConnectorException("Failure retrieving page of users.");
       }
 
-      usersList.forEach(it -> response.add(new MicrosoftGraphUser(it)));
+      // Graph carries the original $filter/$select/$top forward in the nextLink, so this loop
+      // pages correctly for both the filtered and unfiltered request.
+      while (true) {
+        usersList.addAll(usersPage.getCurrentPage());
+
+        final UserCollectionRequestBuilder nextPage = usersPage.getNextPage();
+        if (nextPage == null) {
+          break;
+        }
+        usersPage = nextPage.buildRequest().get();
+        if (usersPage == null) {
+          throw new ConnectorException(
+              String.format(
+                  "Failure retrieving next page of users after %d record(s)", usersList.size()));
+        }
+      }
+
+      // A filtered read selects filterableDetailFields; an unfiltered one only selects
+      // summaryFields. Neither fetches the filter-incompatible fields.
+      final boolean detailLoaded = (modelFieldName != null);
+      usersList.forEach(
+          it -> {
+            MicrosoftGraphUser current = new MicrosoftGraphUser(it);
+            current.setDetailLoaded(detailLoaded);
+            current.setFilterIncompatibleLoaded(false);
+            response.add(current);
+          });
     } catch (GraphServiceException gse) {
       if (gse.toString() != null && driver.getConfiguration().getEnableDebugHttpLogging()) {
         Logger.error(this, String.format("Exception in user.getAll %s", gse.toString()), gse);
       }
       driver.handleGraphServiceException(gse);
+      // handleGraphServiceException returns without throwing for a 404.  Handing back the records
+      // gathered so far is indistinguishable to Midpoint from "the rest were deleted", so fail the
+      // read rather than let a partial result drive deprovisioning.
+      throw new ConnectorException(
+          String.format(
+              "Failure retrieving users from MS Graph after %d record(s)", usersList.size()),
+          gse);
     }
+    // This getAll follows every nextLink itself, so the caller has the complete set.  Say so, or
+    // BaseAdapter.executeBatchImport keeps asking for the next batch and never terminates.
+    resultsPaginator.setNoMoreResults(true);
     return response;
   }
 
@@ -341,6 +358,8 @@ public class MicrosoftGraphUsersInvocator
       }
       MicrosoftGraphUser microsoftGraphUser = new MicrosoftGraphUser(matchingUser);
       microsoftGraphUser.setMemberOf(groupList);
+      microsoftGraphUser.setDetailLoaded(true);
+      microsoftGraphUser.setFilterIncompatibleLoaded(true);
       return microsoftGraphUser;
     } catch (GraphServiceException gse) {
       if (gse.toString() != null && driver.getConfiguration().getEnableDebugHttpLogging()) {

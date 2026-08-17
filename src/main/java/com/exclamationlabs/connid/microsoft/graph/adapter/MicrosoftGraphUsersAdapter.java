@@ -424,10 +424,7 @@ public class MicrosoftGraphUsersAdapter
     attributes.add(
         AttributeBuilder.build(BUSINESS_PHONES.name(), user.getGraphUser().businessPhones));
 
-    attributes.add(AttributeBuilder.build(AGE_GROUP.name(), user.getGraphUser().ageGroup));
-    attributes.add(AttributeBuilder.build(CITY.name(), user.getGraphUser().city));
     attributes.add(AttributeBuilder.build(COMPANY_NAME.name(), user.getGraphUser().companyName));
-    attributes.add(AttributeBuilder.build(COUNTRY.name(), user.getGraphUser().country));
     if (user.getGraphUser().createdDateTime != null) {
       attributes.add(
           AttributeBuilder.build(
@@ -449,23 +446,6 @@ public class MicrosoftGraphUsersAdapter
     }
     attributes.add(AttributeBuilder.build(EMPLOYEE_TYPE.name(), user.getGraphUser().employeeType));
     attributes.add(
-        AttributeBuilder.build(EXTERNAL_USER_STATE.name(), user.getGraphUser().externalUserState));
-
-    if (user.getGraphUser().externalUserStateChangeDateTime != null) {
-      attributes.add(
-          AttributeBuilder.build(
-              EXTERNAL_USER_STATE_CHANGE_DATETIME.name(),
-              user.getGraphUser().externalUserStateChangeDateTime.toString()));
-    }
-    attributes.add(AttributeBuilder.build(IM_ADDRESSES.name(), user.getGraphUser().imAddresses));
-
-    if (user.getGraphUser().lastPasswordChangeDateTime != null) {
-      attributes.add(
-          AttributeBuilder.build(
-              LAST_PASSWORD_CHANGE_DATETIME.name(),
-              user.getGraphUser().lastPasswordChangeDateTime.toString()));
-    }
-    attributes.add(
         AttributeBuilder.build(OFFICE_LOCATION.name(), user.getGraphUser().officeLocation));
     attributes.add(
         AttributeBuilder.build(
@@ -473,59 +453,84 @@ public class MicrosoftGraphUsersAdapter
             user.getGraphUser().onPremisesDistinguishedName));
     attributes.add(
         AttributeBuilder.build(
-            ON_PREMISES_DOMAIN_NAME.name(), user.getGraphUser().onPremisesDomainName));
-    attributes.add(
-        AttributeBuilder.build(
-            ON_PREMISES_IMMUTABLE_ID.name(), user.getGraphUser().onPremisesImmutableId));
-    if (user.getGraphUser().onPremisesLastSyncDateTime != null) {
-      attributes.add(
-          AttributeBuilder.build(
-              ON_PREMISES_LAST_SYNC_DATETIME.name(),
-              user.getGraphUser().onPremisesLastSyncDateTime.toString()));
-    }
-    attributes.add(
-        AttributeBuilder.build(
             ON_PREMISES_SAM_ACCOUNT_NAME.name(), user.getGraphUser().onPremisesSamAccountName));
-    attributes.add(
-        AttributeBuilder.build(
-            ON_PREMISES_SECURITY_IDENTIFIER.name(),
-            user.getGraphUser().onPremisesSecurityIdentifier));
-    attributes.add(
-        AttributeBuilder.build(
-            ON_PREMISES_SYNC_ENABLED.name(), user.getGraphUser().onPremisesSyncEnabled));
     attributes.add(
         AttributeBuilder.build(
             ON_PREMISES_USER_PRINCIPAL_NAME.name(),
             user.getGraphUser().onPremisesUserPrincipalName));
-
-    attributes.add(AttributeBuilder.build(OTHER_EMAILS.name(), user.getGraphUser().otherMails));
-    attributes.add(
-        AttributeBuilder.build(PASSWORD_POLICIES.name(), user.getGraphUser().passwordPolicies));
-    attributes.add(AttributeBuilder.build(POSTAL_CODE.name(), user.getGraphUser().postalCode));
-    attributes.add(
-        AttributeBuilder.build(
-            PREFERRED_DATA_LOCATION.name(), user.getGraphUser().preferredDataLocation));
     attributes.add(
         AttributeBuilder.build(PREFERRED_LANGUAGE.name(), user.getGraphUser().preferredLanguage));
-    attributes.add(
-        AttributeBuilder.build(PROXY_ADDRESSES.name(), user.getGraphUser().proxyAddresses));
-    attributes.add(
-        AttributeBuilder.build(SECURITY_IDENTIFIER.name(), user.getGraphUser().securityIdentifier));
-    attributes.add(AttributeBuilder.build(STATE.name(), user.getGraphUser().state));
-    attributes.add(
-        AttributeBuilder.build(STREET_ADDRESS.name(), user.getGraphUser().streetAddress));
-    attributes.add(
-        AttributeBuilder.build(USAGE_LOCATION.name(), user.getGraphUser().usageLocation));
     attributes.add(AttributeBuilder.build(USER_TYPE.name(), user.getGraphUser().userType));
-    if (user.getGraphUser().hireDate != null) {
+
+    // Detail-only fields sit outside the summary $select that an unfiltered getAll uses.
+    // Reporting them from a shallow read would assert null for values that were never requested,
+    // and Midpoint clears attributes on the strength of that.
+    if (user.isDetailLoaded()) {
+      attributes.add(AttributeBuilder.build(AGE_GROUP.name(), user.getGraphUser().ageGroup));
+      attributes.add(AttributeBuilder.build(CITY.name(), user.getGraphUser().city));
+      attributes.add(AttributeBuilder.build(COUNTRY.name(), user.getGraphUser().country));
       attributes.add(
-          AttributeBuilder.build(HIRE_DATE.name(), user.getGraphUser().hireDate.toString()));
+          AttributeBuilder.build(
+              EXTERNAL_USER_STATE.name(), user.getGraphUser().externalUserState));
+      if (user.getGraphUser().externalUserStateChangeDateTime != null) {
+        attributes.add(
+            AttributeBuilder.build(
+                EXTERNAL_USER_STATE_CHANGE_DATETIME.name(),
+                user.getGraphUser().externalUserStateChangeDateTime.toString()));
+      }
+      attributes.add(AttributeBuilder.build(IM_ADDRESSES.name(), user.getGraphUser().imAddresses));
+      if (user.getGraphUser().lastPasswordChangeDateTime != null) {
+        attributes.add(
+            AttributeBuilder.build(
+                LAST_PASSWORD_CHANGE_DATETIME.name(),
+                user.getGraphUser().lastPasswordChangeDateTime.toString()));
+      }
+      attributes.add(
+          AttributeBuilder.build(
+              ON_PREMISES_DOMAIN_NAME.name(), user.getGraphUser().onPremisesDomainName));
+      attributes.add(
+          AttributeBuilder.build(
+              ON_PREMISES_IMMUTABLE_ID.name(), user.getGraphUser().onPremisesImmutableId));
+      if (user.getGraphUser().onPremisesLastSyncDateTime != null) {
+        attributes.add(
+            AttributeBuilder.build(
+                ON_PREMISES_LAST_SYNC_DATETIME.name(),
+                user.getGraphUser().onPremisesLastSyncDateTime.toString()));
+      }
+      attributes.add(
+          AttributeBuilder.build(
+              ON_PREMISES_SECURITY_IDENTIFIER.name(),
+              user.getGraphUser().onPremisesSecurityIdentifier));
+      attributes.add(
+          AttributeBuilder.build(
+              ON_PREMISES_SYNC_ENABLED.name(), user.getGraphUser().onPremisesSyncEnabled));
+      attributes.add(AttributeBuilder.build(OTHER_EMAILS.name(), user.getGraphUser().otherMails));
+      attributes.add(
+          AttributeBuilder.build(PASSWORD_POLICIES.name(), user.getGraphUser().passwordPolicies));
+      attributes.add(AttributeBuilder.build(POSTAL_CODE.name(), user.getGraphUser().postalCode));
+      attributes.add(
+          AttributeBuilder.build(
+              PREFERRED_DATA_LOCATION.name(), user.getGraphUser().preferredDataLocation));
+      attributes.add(
+          AttributeBuilder.build(PROXY_ADDRESSES.name(), user.getGraphUser().proxyAddresses));
+      attributes.add(
+          AttributeBuilder.build(
+              SECURITY_IDENTIFIER.name(), user.getGraphUser().securityIdentifier));
+      attributes.add(AttributeBuilder.build(STATE.name(), user.getGraphUser().state));
+      attributes.add(
+          AttributeBuilder.build(STREET_ADDRESS.name(), user.getGraphUser().streetAddress));
+      attributes.add(
+          AttributeBuilder.build(USAGE_LOCATION.name(), user.getGraphUser().usageLocation));
     }
-    attributes.add(
-        AttributeBuilder.build(RESPONSIBILITIES.name(), user.getGraphUser().responsibilities));
-    attributes.add(AttributeBuilder.build(SKILLS.name(), user.getGraphUser().skills));
-    attributes.add(
-        AttributeBuilder.build(USAGE_LOCATION.name(), user.getGraphUser().usageLocation));
+    if (user.isFilterIncompatibleLoaded()) {
+      if (user.getGraphUser().hireDate != null) {
+        attributes.add(
+            AttributeBuilder.build(HIRE_DATE.name(), user.getGraphUser().hireDate.toString()));
+      }
+      attributes.add(
+          AttributeBuilder.build(RESPONSIBILITIES.name(), user.getGraphUser().responsibilities));
+      attributes.add(AttributeBuilder.build(SKILLS.name(), user.getGraphUser().skills));
+    }
 
     // read assigned licenses
     if (user.getGraphUser().licenseAssignmentStates != null
@@ -539,8 +544,12 @@ public class MicrosoftGraphUsersAdapter
       attributes.add(AttributeBuilder.build(ASSIGNED_LICENSES.name(), licenses));
     }
 
-    // read assigned groups
-    attributes.add(AttributeBuilder.build(ASSIGNED_GROUPS.name(), user.getMemberOf()));
+    // read assigned groups - only getOne issues the memberOf request, so memberOf is null (rather
+    // than empty) on any read that did not fetch it.  Reporting an empty ASSIGNED_GROUPS from a
+    // shallow read tells Midpoint every group assignment was removed, and it deprovisions them.
+    if (user.getMemberOf() != null) {
+      attributes.add(AttributeBuilder.build(ASSIGNED_GROUPS.name(), user.getMemberOf()));
+    }
 
     return attributes;
   }

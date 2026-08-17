@@ -24,6 +24,21 @@ public class MicrosoftGraphUser implements IdentityModel {
 
   private Set<String> memberOf;
 
+  /**
+   * True when this user was read with the full detail $select rather than the summary one used by
+   * an unfiltered getAll. Attributes outside the summary set must not be reported from a shallow
+   * read - null there means "not requested", and Midpoint would clear the value on the strength of
+   * it.
+   */
+  private boolean detailLoaded = false;
+
+  /**
+   * True when the fields Graph refuses to $select alongside a $filter (skills, responsibilities,
+   * hireDate) were requested. Only getOne reads them, so a filtered getAll is detail-loaded without
+   * them, and the same "not requested" rule applies.
+   */
+  private boolean filterIncompatibleLoaded = false;
+
   private Set<String> licenseIdsToAdd;
   private Set<String> licenseIdsToRemove;
 
@@ -64,6 +79,22 @@ public class MicrosoftGraphUser implements IdentityModel {
 
   public void setMemberOf(Set<String> memberOf) {
     this.memberOf = memberOf;
+  }
+
+  public boolean isDetailLoaded() {
+    return detailLoaded;
+  }
+
+  public void setDetailLoaded(boolean detailLoaded) {
+    this.detailLoaded = detailLoaded;
+  }
+
+  public boolean isFilterIncompatibleLoaded() {
+    return filterIncompatibleLoaded;
+  }
+
+  public void setFilterIncompatibleLoaded(boolean filterIncompatibleLoaded) {
+    this.filterIncompatibleLoaded = filterIncompatibleLoaded;
   }
 
   public Set<String> getLicenseIdsToAdd() {

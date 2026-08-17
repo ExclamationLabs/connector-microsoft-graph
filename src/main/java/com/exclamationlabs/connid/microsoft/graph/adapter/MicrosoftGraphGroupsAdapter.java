@@ -208,28 +208,35 @@ public class MicrosoftGraphGroupsAdapter
             MEMBERSHIP_RULE_PROCESSING_STATE.name(),
             group.getGraphGroup().membershipRuleProcessingState));
 
-    attributes.add(
-        AttributeBuilder.build(
-            ON_PREMISES_DOMAIN_NAME.name(), group.getGraphGroup().onPremisesDomainName));
-    if (group.getGraphGroup().onPremisesLastSyncDateTime != null) {
+    // Detail-only fields sit outside the summary $select that getAll uses.  Reporting them from a
+    // shallow read would assert null for values that were never requested, and Midpoint clears
+    // attributes on the strength of that.
+    if (group.isDetailLoaded()) {
       attributes.add(
           AttributeBuilder.build(
-              ON_PREMISES_LAST_SYNC_DATETIME.name(),
-              group.getGraphGroup().onPremisesLastSyncDateTime.toString()));
+              ON_PREMISES_DOMAIN_NAME.name(), group.getGraphGroup().onPremisesDomainName));
+      if (group.getGraphGroup().onPremisesLastSyncDateTime != null) {
+        attributes.add(
+            AttributeBuilder.build(
+                ON_PREMISES_LAST_SYNC_DATETIME.name(),
+                group.getGraphGroup().onPremisesLastSyncDateTime.toString()));
+      }
+      attributes.add(
+          AttributeBuilder.build(
+              ON_PREMISES_NET_BIOS_NAME.name(), group.getGraphGroup().onPremisesNetBiosName));
+      attributes.add(
+          AttributeBuilder.build(
+              ON_PREMISES_SAM_ACCOUNT_NAME.name(), group.getGraphGroup().onPremisesSamAccountName));
+      attributes.add(
+          AttributeBuilder.build(
+              ON_PREMISES_SECURITY_IDENTIFIER.name(),
+              group.getGraphGroup().onPremisesSecurityIdentifier));
+      attributes.add(
+          AttributeBuilder.build(
+              ON_PREMISES_SYNC_ENABLED.name(), group.getGraphGroup().onPremisesSyncEnabled));
+      attributes.add(AttributeBuilder.build(THEME.name(), group.getGraphGroup().theme));
+      attributes.add(AttributeBuilder.build(VISIBILITY.name(), group.getGraphGroup().visibility));
     }
-    attributes.add(
-        AttributeBuilder.build(
-            ON_PREMISES_NET_BIOS_NAME.name(), group.getGraphGroup().onPremisesNetBiosName));
-    attributes.add(
-        AttributeBuilder.build(
-            ON_PREMISES_SAM_ACCOUNT_NAME.name(), group.getGraphGroup().onPremisesSamAccountName));
-    attributes.add(
-        AttributeBuilder.build(
-            ON_PREMISES_SECURITY_IDENTIFIER.name(),
-            group.getGraphGroup().onPremisesSecurityIdentifier));
-    attributes.add(
-        AttributeBuilder.build(
-            ON_PREMISES_SYNC_ENABLED.name(), group.getGraphGroup().onPremisesSyncEnabled));
 
     attributes.add(
         AttributeBuilder.build(
@@ -248,8 +255,6 @@ public class MicrosoftGraphGroupsAdapter
     attributes.add(
         AttributeBuilder.build(
             SECURITY_IDENTIFIER.name(), group.getGraphGroup().securityIdentifier));
-    attributes.add(AttributeBuilder.build(THEME.name(), group.getGraphGroup().theme));
-    attributes.add(AttributeBuilder.build(VISIBILITY.name(), group.getGraphGroup().visibility));
     if (group.getGraphGroup().createdOnBehalfOf != null) {
       attributes.add(
           AttributeBuilder.build(

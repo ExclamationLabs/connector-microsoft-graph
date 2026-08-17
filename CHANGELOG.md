@@ -2,6 +2,7 @@
 
 ## Change Log
 
++ **3.0.1** - FIN-14541 - Fix Group import. Filtered getAll now collects and pages its results (groups previously returned none, so name lookups reported every group as missing and Midpoint unlinked them), group lookup by Midpoint's composite "displayName (id)" Name resolves by id, and MS Team identification reads resourceProvisioningOptions from the group instead of probing GET /teams/{id} once per group. License getAll now follows the nextLink as well. All three getAll methods now fail rather than return a partial result set when a page read fails, since Midpoint cannot distinguish a truncated read from a set of deletions; getOne still reports a 404 as null. getAll now marks the ResultsPaginator complete, so a batch import terminates instead of looping forever when pagination is enabled. Adapters no longer report detail-only attributes from a shallow read: ASSIGNED_GROUPS in particular is only emitted once memberOf has actually been fetched, since reporting it empty told Midpoint every group assignment had been removed (10/12/2026)
 + **3.0.0** - **BREAKING SCHEMA CHANGE:** `user` objectClass `__NAME__` (naming/secondary
   identifier) now maps to `userPrincipalName` instead of `displayName`. `displayName` is not
   unique in Entra, which caused `ObjectAlreadyExistsException: Too many iterations` on name

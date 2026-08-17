@@ -21,6 +21,7 @@ import com.exclamationlabs.connid.microsoft.graph.model.MicrosoftGraphLicense;
 import com.microsoft.graph.http.GraphServiceException;
 import com.microsoft.graph.models.SubscribedSku;
 import com.microsoft.graph.requests.SubscribedSkuCollectionPage;
+import com.microsoft.graph.requests.SubscribedSkuCollectionRequestBuilder;
 import java.util.*;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 
@@ -53,20 +54,44 @@ public class MicrosoftGraphLicensesInvocator
       throws ConnectorException {
     Set<MicrosoftGraphLicense> response = new HashSet<>();
     try {
-      final SubscribedSkuCollectionPage page =
+      SubscribedSkuCollectionPage page =
           driver.getGraphClient().subscribedSkus().buildRequest().get();
       if (page == null) {
-        throw new ConnectorException("Failure retrieving page of users.");
+        throw new ConnectorException("Failure retrieving page of licenses.");
       }
 
-      List<SubscribedSku> licenses = page.getCurrentPage();
-      licenses.forEach(it -> response.add(new MicrosoftGraphLicense(it)));
+      // subscribedSkus is not expected to paginate, but follow the nextLink if it ever does.  A
+      // silently truncated license list reads to Midpoint as a set of deleted entitlements.
+      while (true) {
+        page.getCurrentPage().forEach(it -> response.add(new MicrosoftGraphLicense(it)));
+
+        final SubscribedSkuCollectionRequestBuilder nextPage = page.getNextPage();
+        if (nextPage == null) {
+          break;
+        }
+        page = nextPage.buildRequest().get();
+        if (page == null) {
+          throw new ConnectorException(
+              String.format(
+                  "Failure retrieving next page of licenses after %d record(s)", response.size()));
+        }
+      }
     } catch (GraphServiceException gse) {
       if (gse.toString() != null && driver.getConfiguration().getEnableDebugHttpLogging()) {
         Logger.error(this, String.format("Exception in license.getAll %s", gse.toString()), gse);
       }
       driver.handleGraphServiceException(gse);
+      // handleGraphServiceException returns without throwing for a 404.  Handing back the records
+      // gathered so far is indistinguishable to Midpoint from "the rest were deleted", so fail the
+      // read rather than let a partial result drive deprovisioning.
+      throw new ConnectorException(
+          String.format(
+              "Failure retrieving licenses from MS Graph after %d record(s)", response.size()),
+          gse);
     }
+    // This getAll follows every nextLink itself, so the caller has the complete set.  Say so, or
+    // BaseAdapter.executeBatchImport keeps asking for the next batch and never terminates.
+    resultsPaginator.setNoMoreResults(true);
     return response;
   }
 

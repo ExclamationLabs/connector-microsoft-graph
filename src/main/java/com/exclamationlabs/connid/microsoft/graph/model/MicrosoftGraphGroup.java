@@ -21,6 +21,13 @@ public class MicrosoftGraphGroup implements IdentityModel {
   private Group graphGroup;
   private Boolean msTeam = false;
 
+  /**
+   * True when this group was read with the full detail $select rather than the summary one used by
+   * getAll. Attributes outside the summary set must not be reported from a shallow read - null
+   * there means "not requested", and Midpoint would clear the value on the strength of it.
+   */
+  private boolean detailLoaded = false;
+
   public MicrosoftGraphGroup(Group group) {
     setGraphGroup(group);
   }
@@ -49,5 +56,13 @@ public class MicrosoftGraphGroup implements IdentityModel {
 
   public void setMsTeam(Boolean msTeam) {
     this.msTeam = msTeam;
+  }
+
+  public boolean isDetailLoaded() {
+    return detailLoaded;
+  }
+
+  public void setDetailLoaded(boolean detailLoaded) {
+    this.detailLoaded = detailLoaded;
   }
 }

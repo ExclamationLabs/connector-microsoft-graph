@@ -19,12 +19,15 @@ import com.exclamationlabs.connid.base.connector.results.ResultsFilter;
 import com.exclamationlabs.connid.base.connector.results.ResultsPaginator;
 import com.exclamationlabs.connid.microsoft.graph.attribute.MicrosoftGraphUserAttribute;
 import com.exclamationlabs.connid.microsoft.graph.model.MicrosoftGraphGroup;
+import com.google.gson.JsonElement;
 import com.microsoft.graph.http.GraphServiceException;
 import com.microsoft.graph.models.Group;
-import com.microsoft.graph.models.Team;
 import com.microsoft.graph.requests.GroupCollectionPage;
+import com.microsoft.graph.requests.GroupCollectionRequest;
 import com.microsoft.graph.requests.GroupCollectionRequestBuilder;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Name;
 
@@ -36,6 +39,17 @@ public class MicrosoftGraphGroupsInvocator
   private static final Set<String> detailFields;
 
   private static final Map<String, String> filterAttributeToFieldMap;
+
+  /**
+   * Midpoint holds a group's Name as the composite produced by {@link
+   * MicrosoftGraphGroup#getIdentityNameValue()} - "displayName (id)" - because Entra group display
+   * names are not unique. Used to recover the id when looking a group up by that Name.
+   */
+  private static final Pattern IDENTITY_NAME_PATTERN = Pattern.compile("^(.*) \\(([^()]+)\\)$");
+
+  private static final String TEAM_PROVISIONING_OPTION = "Team";
+
+  private static final String RESOURCE_PROVISIONING_OPTIONS = "resourceProvisioningOptions";
 
   static {
     filterAttributeToFieldMap = new HashMap<>();
@@ -65,6 +79,7 @@ public class MicrosoftGraphGroupsInvocator
                 "preferredDataLocation",
                 "proxyAddresses",
                 "renewedDateTime",
+                RESOURCE_PROVISIONING_OPTIONS,
                 "securityEnabled",
                 "securityIdentifier"));
 
@@ -153,49 +168,46 @@ public class MicrosoftGraphGroupsInvocator
     Set<MicrosoftGraphGroup> response = new HashSet<>();
     List<Group> groupList = new ArrayList<>();
     try {
-      GroupCollectionPage page;
-
       String modelFieldName =
           resultsFilter.hasFilter()
               ? filterAttributeToFieldMap.get(resultsFilter.getAttribute())
               : null;
+      GroupCollectionRequest request =
+          driver
+              .getGraphClient()
+              .groups()
+              .buildRequest()
+              .select(String.join(",", summaryFields))
+              .top(MicrosoftGraphDriver.SDK_FETCH_COUNT);
       if (modelFieldName != null) {
-        page =
-            driver
-                .getGraphClient()
-                .groups()
-                .buildRequest()
-                .select(String.join(",", summaryFields))
-                .filter(modelFieldName + " eq '" + resultsFilter.getValue() + "'")
-                .get();
-      } else {
-        page =
-            driver
-                .getGraphClient()
-                .groups()
-                .buildRequest()
-                .select(String.join(",", summaryFields))
-                .top(MicrosoftGraphDriver.SDK_FETCH_COUNT)
-                .get();
-        while (page != null) {
-          groupList.addAll(page.getCurrentPage());
-
-          final GroupCollectionRequestBuilder nextPage = page.getNextPage();
-          if (nextPage == null) {
-            break;
-          } else {
-            page = nextPage.buildRequest().get();
-          }
-        }
+        request = request.filter(modelFieldName + " eq '" + resultsFilter.getValue() + "'");
       }
-      driver.getGraphClient().groups().buildRequest().select(String.join(",", summaryFields)).get();
+
+      GroupCollectionPage page = request.get();
       if (page == null) {
-        throw new ConnectorException("Failure retrieving page of users.");
+        throw new ConnectorException("Failure retrieving page of groups.");
+      }
+
+      // Graph carries the original $filter/$select/$top forward in the nextLink, so this loop
+      // pages correctly for both the filtered and unfiltered request.
+      while (true) {
+        groupList.addAll(page.getCurrentPage());
+
+        final GroupCollectionRequestBuilder nextPage = page.getNextPage();
+        if (nextPage == null) {
+          break;
+        }
+        page = nextPage.buildRequest().get();
+        if (page == null) {
+          throw new ConnectorException(
+              String.format(
+                  "Failure retrieving next page of groups after %d record(s)", groupList.size()));
+        }
       }
 
       for (Group current : groupList) {
         MicrosoftGraphGroup currentGroup = new MicrosoftGraphGroup(current);
-        currentGroup.setMsTeam(checkMsTeamType(driver, currentGroup.getIdentityIdValue()));
+        currentGroup.setMsTeam(isMsTeam(current));
         response.add(currentGroup);
       }
     } catch (GraphServiceException gse) {
@@ -203,7 +215,17 @@ public class MicrosoftGraphGroupsInvocator
         Logger.error(this, String.format("Exception in groups.getAll %s", gse.toString()), gse);
       }
       driver.handleGraphServiceException(gse);
+      // handleGraphServiceException returns without throwing for a 404.  Handing back the records
+      // gathered so far is indistinguishable to Midpoint from "the rest were deleted", so fail the
+      // read rather than let a partial result drive deprovisioning.
+      throw new ConnectorException(
+          String.format(
+              "Failure retrieving groups from MS Graph after %d record(s)", groupList.size()),
+          gse);
     }
+    // This getAll follows every nextLink itself, so the caller has the complete set.  Say so, or
+    // BaseAdapter.executeBatchImport keeps asking for the next batch and never terminates.
+    resultsPaginator.setNoMoreResults(true);
     return response;
   }
 
@@ -220,7 +242,8 @@ public class MicrosoftGraphGroupsInvocator
               .get();
 
       MicrosoftGraphGroup returnGroup = new MicrosoftGraphGroup(matchingGroup);
-      returnGroup.setMsTeam(checkMsTeamType(driver, id));
+      returnGroup.setMsTeam(isMsTeam(matchingGroup));
+      returnGroup.setDetailLoaded(true);
       return returnGroup;
     } catch (GraphServiceException gse) {
       if (gse.toString() != null && driver.getConfiguration().getEnableDebugHttpLogging()) {
@@ -233,50 +256,62 @@ public class MicrosoftGraphGroupsInvocator
 
   @Override
   public MicrosoftGraphGroup getOneByName(MicrosoftGraphDriver driver, String nameValue) {
+    if (nameValue == null) {
+      return null;
+    }
+    // Midpoint holds the composite "displayName (id)" as the group Name.  Recover the id and read
+    // the group directly - filtering Graph on that composite string never matches a displayName.
+    String groupId = extractGroupId(nameValue);
+    if (groupId != null) {
+      return getOne(driver, groupId, Collections.emptyMap());
+    }
     Set<MicrosoftGraphGroup> groups =
         getAll(driver, new ResultsFilter(Name.NAME, nameValue), new ResultsPaginator(), null);
     Optional<MicrosoftGraphGroup> groupGet = groups.stream().findFirst();
     return groupGet.orElse(null);
   }
 
-  protected long[] getRetryDelaysMs() {
-    return new long[] {5000L, 10000L, 30000L};
+  /**
+   * Pull the group id out of the composite Name "displayName (id)". Returns null when the value is
+   * not a composite Name, so a caller passing a raw displayName - including one that legitimately
+   * ends in parentheses, such as "Sales (EMEA)" - falls through to a displayName lookup.
+   */
+  protected static String extractGroupId(String nameValue) {
+    Matcher matcher = IDENTITY_NAME_PATTERN.matcher(nameValue);
+    if (!matcher.matches()) {
+      return null;
+    }
+    String candidate = matcher.group(2);
+    try {
+      UUID.fromString(candidate);
+      return candidate;
+    } catch (IllegalArgumentException iae) {
+      return null;
+    }
   }
 
-  protected Boolean checkMsTeamType(MicrosoftGraphDriver driver, String groupId) {
-    long[] retryDelaysMs = getRetryDelaysMs();
-    int maxAttempts = retryDelaysMs.length + 1;
-    for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-      try {
-        Team teamInfo =
-            Objects.requireNonNull(driver.getGraphClient().teams().byId(groupId))
-                .buildRequest()
-                .get();
-        return (teamInfo != null);
-      } catch (GraphServiceException gse) {
-        if (gse.getResponseCode() == 404) {
-          return false;
-        } else if (gse.getResponseCode() == 500 && attempt < maxAttempts) {
-          try {
-            Thread.sleep(retryDelaysMs[attempt - 1]);
-          } catch (InterruptedException ie) {
-            Thread.currentThread().interrupt();
-          }
-        } else {
-          driver.handleGraphServiceException(gse);
-          if (gse.toString() != null && driver.getConfiguration().getEnableDebugHttpLogging()) {
-            throw new ConnectorException(
-                "Unexpected GraphServiceException occurred during checkMsTeamType:"
-                    + gse.toString(),
-                gse);
-          } else {
-            throw new ConnectorException(
-                "Unexpected GraphServiceException occurred during checkMsTeamType:", gse);
-          }
-        }
+  /**
+   * Identify a Teams-provisioned group from the group payload itself. Reading
+   * resourceProvisioningOptions off the group avoids a per-group GET /teams/{id} probe, which cost
+   * one request per group and aborted the whole import whenever a group type produced anything
+   * other than a 404.
+   */
+  protected static Boolean isMsTeam(Group group) {
+    if (group == null) {
+      return false;
+    }
+    JsonElement provisioningOptions =
+        group.additionalDataManager().get(RESOURCE_PROVISIONING_OPTIONS);
+    if (provisioningOptions == null || !provisioningOptions.isJsonArray()) {
+      return false;
+    }
+    for (JsonElement current : provisioningOptions.getAsJsonArray()) {
+      if (current != null
+          && current.isJsonPrimitive()
+          && TEAM_PROVISIONING_OPTION.equalsIgnoreCase(current.getAsString())) {
+        return true;
       }
     }
-    throw new ConnectorException(
-        "checkMsTeamType failed after " + maxAttempts + " attempts due to repeated 500 errors");
+    return false;
   }
 }
