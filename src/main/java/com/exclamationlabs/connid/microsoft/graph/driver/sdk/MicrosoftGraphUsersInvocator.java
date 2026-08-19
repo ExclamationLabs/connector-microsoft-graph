@@ -35,14 +35,47 @@ public class MicrosoftGraphUsersInvocator
 
   private static final Set<String> detailFields;
 
+  /**
+   * {@link #detailFields} minus the fields that cannot be combined with a {@code $filter}. See
+   * {@link #FILTER_INCOMPATIBLE_FIELDS}.
+   */
+  private static final Set<String> filterableDetailFields;
+
+  /**
+   * Fields backed by the SharePoint/Delve user-profile store rather than the Entra directory.
+   * Selecting any of them on {@code /users} alongside a {@code $filter} makes Graph reject the
+   * request outright:
+   *
+   * <pre>
+   *   400 Bad Request
+   *   -1, Microsoft.SharePoint.Client.InvalidClientQueryException
+   *   The expression "id in ('...')" is not valid.
+   * </pre>
+   *
+   * <p>The error blames the filter expression, but the filter is valid OData — it is the
+   * combination that fails. A single-entity read ({@code /users/{id}}, no {@code $filter}) can
+   * select them safely, which is why {@link #getOne} is unaffected.
+   *
+   * <p>Only the three that this connector actually selects are listed. The wider filter-incompatible
+   * set also includes {@code aboutMe}, {@code interests}, {@code pastProjects}, {@code schools},
+   * {@code birthday}, {@code mySite} and {@code preferredName}; add them here if they are ever
+   * added to {@link #detailFields}.
+   */
+  private static final Set<String> FILTER_INCOMPATIBLE_FIELDS =
+      Collections.unmodifiableSet(
+          new HashSet<>(Arrays.asList("skills", "responsibilities", "hireDate")));
+
   private static final Map<String, String> filterAttributeToFieldMap;
 
   static {
     filterAttributeToFieldMap = new HashMap<>();
-    filterAttributeToFieldMap.put(Name.NAME, "displayName");
+    // __NAME__ maps to userPrincipalName (see MicrosoftGraphUsersAdapter), so filtering by
+    // __NAME__ must query userPrincipalName in Graph, not displayName.
+    filterAttributeToFieldMap.put(Name.NAME, "userPrincipalName");
     filterAttributeToFieldMap.put(MicrosoftGraphUserAttribute.DISPLAY_NAME.name(), "displayName");
     filterAttributeToFieldMap.put(MicrosoftGraphUserAttribute.EMAIL.name(), "mail");
-    filterAttributeToFieldMap.put(MicrosoftGraphUserAttribute.USER_PRINCIPAL_NAME.name(), "mail");
+    filterAttributeToFieldMap.put(
+        MicrosoftGraphUserAttribute.USER_PRINCIPAL_NAME.name(), "userPrincipalName");
     filterAttributeToFieldMap.put(MicrosoftGraphUserAttribute.USER_TYPE.name(), "userType");
     filterAttributeToFieldMap.put(MicrosoftGraphUserAttribute.GIVEN_NAME.name(), "givenName");
     filterAttributeToFieldMap.put(MicrosoftGraphUserAttribute.SURNAME.name(), "surname");
@@ -110,6 +143,11 @@ public class MicrosoftGraphUsersInvocator
             "memberOf",
             "responsibilities",
             "skills"));
+
+    // Filtered searches must not select the SharePoint-backed fields, or Graph rejects the whole
+    // request. Detail reads by id keep using detailFields, so nothing is lost there.
+    filterableDetailFields = new HashSet<>(detailFields);
+    filterableDetailFields.removeAll(FILTER_INCOMPATIBLE_FIELDS);
   }
 
   @Override
@@ -230,7 +268,9 @@ public class MicrosoftGraphUsersInvocator
                 .getGraphClient()
                 .users()
                 .buildRequest()
-                .select(String.join(",", detailFields))
+                // filterableDetailFields, not detailFields: selecting a SharePoint-backed field
+                // alongside a $filter makes Graph reject the request.
+                .select(String.join(",", filterableDetailFields))
                 .filter(modelFieldName + " eq '" + resultsFilter.getValue() + "'")
                 .get();
         usersList = usersPage.getCurrentPage();

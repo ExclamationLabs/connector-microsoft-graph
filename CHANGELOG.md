@@ -2,6 +2,12 @@
 
 ## Change Log
 
++ **3.0.0** - **BREAKING SCHEMA CHANGE:** `user` objectClass `__NAME__` (naming/secondary
+  identifier) now maps to `userPrincipalName` instead of `displayName`. `displayName` is not
+  unique in Entra, which caused `ObjectAlreadyExistsException: Too many iterations` on name
+  collisions. `DISPLAY_NAME` is now a plain attribute. Requires a midPoint schema refresh; existing
+  user shadows will re-key on `icfs:name` (expect all user shadow names to change to the UPN).
+  `group` objectClass is unchanged. (2026/07/24)
 + **2.0.3** - Update group error handling with retryable exception
 + **2.0.2** - Remove Group Member Limit of 20, add more getOne attributes (03/28/2025)
 + **2.0.1** - Add DynamicMembership attribute Add debug logging options and do not create employeeOrgData or passwordProfile if the values are null. (02/19/2025)

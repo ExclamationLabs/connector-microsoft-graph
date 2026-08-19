@@ -45,7 +45,9 @@ public class MicrosoftGraphUser implements IdentityModel {
 
   @Override
   public String getIdentityNameValue() {
-    return getGraphUser().displayName;
+    // __NAME__ maps to userPrincipalName (tenant-unique in Entra), not displayName,
+    // which is not unique and caused ObjectAlreadyExistsException on name collisions.
+    return getGraphUser().userPrincipalName;
   }
 
   public User getGraphUser() {

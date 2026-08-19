@@ -41,6 +41,7 @@ public class MicrosoftGraphConnectorApiIntegrationTest
   private static final String VALID_PASSWORD_VALUE = "D8weoIru#4";
 
   private static final String KNOWN_USER_ID = "redacted";
+  // __NAME__ is now userPrincipalName, so this must be a known UPN (not a displayName).
   private static final String KNOWN_USERNAME = "redacted";
   private static final String KNOWN_GIVEN_NAME = "redacted";
   private static final String KNOWN_SURNAME = "redacted";
@@ -102,6 +103,30 @@ public class MicrosoftGraphConnectorApiIntegrationTest
 
     Schema schema = getConnectorFacade().schema();
     assertNotNull(schema);
+
+    // Verify the DISPLAY_NAME uniqueness fix: __NAME__ (naming/secondary identifier) must be
+    // backed by USER_PRINCIPAL_NAME (tenant-unique), and DISPLAY_NAME must remain a plain attribute.
+    ObjectClassInfo userInfo =
+        schema.getObjectClassInfo().stream()
+            .filter(oc -> "user".equals(oc.getType()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("user objectClass missing from schema"));
+
+    AttributeInfo nameInfo =
+        userInfo.getAttributeInfo().stream()
+            .filter(ai -> Name.NAME.equals(ai.getName()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("__NAME__ attribute missing from user schema"));
+    assertEquals(
+        MicrosoftGraphUserAttribute.USER_PRINCIPAL_NAME.name(),
+        nameInfo.getNativeName(),
+        "__NAME__ must map to USER_PRINCIPAL_NAME, not DISPLAY_NAME");
+
+    assertTrue(
+        userInfo.getAttributeInfo().stream()
+            .anyMatch(
+                ai -> MicrosoftGraphUserAttribute.DISPLAY_NAME.name().equals(ai.getName())),
+        "DISPLAY_NAME must exist as a plain attribute");
   }
 
   @Test
@@ -112,7 +137,10 @@ public class MicrosoftGraphConnectorApiIntegrationTest
 
     attributes.add(new AttributeBuilder().setName(GIVEN_NAME.name()).addValue("Bud").build());
     attributes.add(new AttributeBuilder().setName(SURNAME.name()).addValue("Coke").build());
-    attributes.add(new AttributeBuilder().setName(Name.NAME).addValue("Bud Coke").build());
+    // __NAME__ is now the userPrincipalName; DISPLAY_NAME carries the friendly name.
+    attributes.add(new AttributeBuilder().setName(Name.NAME).addValue(TEST_EMAIL).build());
+    attributes.add(
+        new AttributeBuilder().setName(DISPLAY_NAME.name()).addValue("Bud Coke").build());
     attributes.add(new AttributeBuilder().setName(EMAIL.name()).addValue(TEST_EMAIL).build());
     attributes.add(
         new AttributeBuilder().setName(EMAIL_NICKNAME.name()).addValue("BudCoke3").build());
@@ -135,8 +163,7 @@ public class MicrosoftGraphConnectorApiIntegrationTest
             .build());
     attributes.add(
         new AttributeBuilder().setName(PREFERRED_LANGUAGE.name()).addValue("en-US").build());
-    attributes.add(
-        new AttributeBuilder().setName(USER_PRINCIPAL_NAME.name()).addValue(TEST_EMAIL).build());
+    // userPrincipalName is supplied via __NAME__ above.
     // Usage location needed for license assignment
     attributes.add(new AttributeBuilder().setName(USAGE_LOCATION.name()).addValue("US").build());
     Uid newId =
@@ -155,7 +182,10 @@ public class MicrosoftGraphConnectorApiIntegrationTest
 
     attributes.add(new AttributeBuilder().setName(GIVEN_NAME.name()).addValue("Sid").build());
     attributes.add(new AttributeBuilder().setName(SURNAME.name()).addValue("Coke").build());
-    attributes.add(new AttributeBuilder().setName(Name.NAME).addValue("Sid Coke").build());
+    // __NAME__ is the userPrincipalName; a duplicate UPN must raise AlreadyExistsException.
+    attributes.add(new AttributeBuilder().setName(Name.NAME).addValue(TEST_EMAIL).build());
+    attributes.add(
+        new AttributeBuilder().setName(DISPLAY_NAME.name()).addValue("Sid Coke").build());
     attributes.add(new AttributeBuilder().setName(EMAIL.name()).addValue(TEST_EMAIL).build());
     attributes.add(
         new AttributeBuilder().setName(EMAIL_NICKNAME.name()).addValue("SidCoke3").build());
@@ -178,8 +208,7 @@ public class MicrosoftGraphConnectorApiIntegrationTest
             .build());
     attributes.add(
         new AttributeBuilder().setName(PREFERRED_LANGUAGE.name()).addValue("en-US").build());
-    attributes.add(
-        new AttributeBuilder().setName(USER_PRINCIPAL_NAME.name()).addValue(TEST_EMAIL).build());
+    // userPrincipalName is supplied via __NAME__ above.
     // Usage location needed for license assignment
     attributes.add(new AttributeBuilder().setName(USAGE_LOCATION.name()).addValue("US").build());
 
@@ -206,7 +235,10 @@ public class MicrosoftGraphConnectorApiIntegrationTest
 
     attributes.add(new AttributeBuilder().setName(GIVEN_NAME.name()).addValue("Kevin").build());
     attributes.add(new AttributeBuilder().setName(SURNAME.name()).addValue("Omaha").build());
-    attributes.add(new AttributeBuilder().setName(Name.NAME).addValue("Kevin Omaha").build());
+    // __NAME__ is the userPrincipalName; DISPLAY_NAME carries the friendly name.
+    attributes.add(new AttributeBuilder().setName(Name.NAME).addValue(TEST_EMAIL).build());
+    attributes.add(
+        new AttributeBuilder().setName(DISPLAY_NAME.name()).addValue("Kevin Omaha").build());
     attributes.add(new AttributeBuilder().setName(EMAIL.name()).addValue(TEST_EMAIL).build());
     attributes.add(
         new AttributeBuilder().setName(EMAIL_NICKNAME.name()).addValue("JOmaha").build());
@@ -231,8 +263,7 @@ public class MicrosoftGraphConnectorApiIntegrationTest
             .build());
     attributes.add(
         new AttributeBuilder().setName(PREFERRED_LANGUAGE.name()).addValue("en-US").build());
-    attributes.add(
-        new AttributeBuilder().setName(USER_PRINCIPAL_NAME.name()).addValue(TEST_EMAIL).build());
+    // userPrincipalName is supplied via __NAME__ above.
 
     Uid newId =
         getConnectorFacade()
@@ -275,7 +306,12 @@ public class MicrosoftGraphConnectorApiIntegrationTest
     Set<Attribute> attributes = new HashSet<>();
     attributes.add(new AttributeBuilder().setName(GIVEN_NAME.name()).addValue("Kevin").build());
     attributes.add(new AttributeBuilder().setName(SURNAME.name()).addValue("Durant").build());
-    attributes.add(new AttributeBuilder().setName(Name.NAME).addValue("Kevin Durant").build());
+    // __NAME__ is the userPrincipalName; other required elements are intentionally omitted.
+    attributes.add(
+        new AttributeBuilder()
+            .setName(Name.NAME)
+            .addValue("kevindurant@exclamationlabs.com")
+            .build());
 
     assertThrows(
         ConnectorException.class,
