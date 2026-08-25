@@ -211,6 +211,27 @@ public class MicrosoftGraphIdentifierReadOnlyIT
   }
 
   @Test
+  @Order(22)
+  public void test022UpnNotEmittedAsSeparateAttribute() {
+    assumeSubject();
+    // The object half of the invariant checked on the schema in test011. BaseAdapter already
+    // emits the UPN as __NAME__ (whose native name is USER_PRINCIPAL_NAME), so constructAttributes
+    // must not emit it a second time under its own name. When it did, midPoint rejected the object
+    // with "Item USER_PRINCIPAL_NAME is already present in PrismContainerValueImpl".
+    // Re-issue the listing here: the base class resets `results` to a fresh empty list before
+    // every test, so iterating the field directly would loop over nothing and pass vacuously.
+    List<ConnectorObject> users = listAllUsers();
+    assertFalse(users.isEmpty(), "tenant returned no users");
+    for (ConnectorObject user : users) {
+      assertNull(
+          user.getAttributeByName(USER_PRINCIPAL_NAME.name()),
+          "user "
+              + single(user, Uid.NAME)
+              + " carries a separate USER_PRINCIPAL_NAME attribute; it must travel only as __NAME__");
+    }
+  }
+
+  @Test
   @Order(30)
   public void test030GetByUidEmitsUpnAsName() {
     assumeSubject();
@@ -390,6 +411,13 @@ public class MicrosoftGraphIdentifierReadOnlyIT
         filteredReadsWork(),
         "connector filtered reads are broken — check that MicrosoftGraphUsersInvocator still uses"
             + " filterableDetailFields (not detailFields) for filtered searches");
+  }
+
+  private List<ConnectorObject> listAllUsers() {
+    results = new ArrayList<>();
+    getConnectorFacade()
+        .search(new ObjectClass("user"), null, handler, new OperationOptionsBuilder().build());
+    return new ArrayList<>(results);
   }
 
   private List<ConnectorObject> searchUsersBy(String attributeName, String value) {

@@ -401,8 +401,9 @@ public class MicrosoftGraphUsersAdapter
 
     attributes.add(
         AttributeBuilder.build(PREFERRED_LANGUAGE.name(), user.getGraphUser().preferredLanguage));
-    attributes.add(
-        AttributeBuilder.build(USER_PRINCIPAL_NAME.name(), user.getGraphUser().userPrincipalName));
+    // USER_PRINCIPAL_NAME is not emitted as its own attribute: it is the native name of
+    // __NAME__ (set by BaseAdapter via setName), and emitting it again makes midPoint see two
+    // definitions for the same native name ("Item USER_PRINCIPAL_NAME is already present").
 
     if (user.getGraphUser().passwordProfile != null) {
       if (user.getGraphUser().passwordProfile.password != null) {
